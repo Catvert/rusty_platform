@@ -1,0 +1,15 @@
+/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/deps/serde-d3b9b65e49317b57.rmeta: /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/lib.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/macros.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/bytes.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/de/mod.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/de/impls.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/de/value.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/de/from_primitive.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/iter.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/ser/mod.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/ser/impls.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/utils.rs
+
+/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/deps/serde-d3b9b65e49317b57.d: /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/lib.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/macros.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/bytes.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/de/mod.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/de/impls.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/de/value.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/de/from_primitive.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/iter.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/ser/mod.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/ser/impls.rs /home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/utils.rs
+
+/home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/lib.rs:
+/home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/macros.rs:
+/home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/bytes.rs:
+/home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/de/mod.rs:
+/home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/de/impls.rs:
+/home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/de/value.rs:
+/home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/de/from_primitive.rs:
+/home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/iter.rs:
+/home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/ser/mod.rs:
+/home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/ser/impls.rs:
+/home/finch/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-0.8.23/src/utils.rs:

@@ -1,0 +1,32 @@
+[package]
+name = "rusty_platform"
+version = "0.1.0"
+authors = []
+
+[profile.dev]
+opt-level = 2
+
+[dependencies]
+ggez = { git = "https://github.com/Catvert/ggez.git" }
+gfx = "0.17.1"
+gfx_core = "0.8.2"
+gfx_device_gl = "0.15.3"
+sdl2 = "0.31.0"
+
+specs = { version = "0.12.1", features = ["serde"] }
+specs-derive = "0.2.0"
+shrev = "1.0.1"
+shred = { version = "0.7.0" }
+
+serde = "1.0.71"
+serde_derive = "1.0.71"
+ron = "0.4.0"
+
+num = "0.2.0"
+nalgebra = { version="0.14", features= ["serde-serialize"] }
+ndarray = "0.11.2"
+
+lazy_static = "1.1.0"
+
+nuklear-backend-gfx = "0.7.1"
+nuklear-rust = "0.5.1"

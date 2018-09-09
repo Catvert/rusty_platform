@@ -1,0 +1,234 @@
+TARGET = Some("x86_64-unknown-linux-gnu")
+OPT_LEVEL = Some("2")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+CXX_x86_64-unknown-linux-gnu = None
+CXX_x86_64_unknown_linux_gnu = None
+HOST_CXX = None
+CXX = None
+HOST = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+CXXFLAGS_x86_64-unknown-linux-gnu = None
+CXXFLAGS_x86_64_unknown_linux_gnu = None
+HOST_CXXFLAGS = None
+CXXFLAGS = None
+DEBUG = Some("true")
+running: "c++" "-O2" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-m64" "-Wall" "-Wextra" "-o" "/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/build/imgui-sys-71a1fbb9b5a4c6b6/out/third-party/cimgui/cimgui/cimgui.o" "-c" "third-party/cimgui/cimgui/cimgui.cpp"
+exit code: 0
+TARGET = Some("x86_64-unknown-linux-gnu")
+OPT_LEVEL = Some("2")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+CXX_x86_64-unknown-linux-gnu = None
+CXX_x86_64_unknown_linux_gnu = None
+HOST_CXX = None
+CXX = None
+HOST = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+CXXFLAGS_x86_64-unknown-linux-gnu = None
+CXXFLAGS_x86_64_unknown_linux_gnu = None
+HOST_CXXFLAGS = None
+CXXFLAGS = None
+DEBUG = Some("true")
+running: "c++" "-O2" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-m64" "-Wall" "-Wextra" "-o" "/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/build/imgui-sys-71a1fbb9b5a4c6b6/out/third-party/cimgui/cimgui/fontAtlas.o" "-c" "third-party/cimgui/cimgui/fontAtlas.cpp"
+exit code: 0
+TARGET = Some("x86_64-unknown-linux-gnu")
+OPT_LEVEL = Some("2")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+CXX_x86_64-unknown-linux-gnu = None
+CXX_x86_64_unknown_linux_gnu = None
+HOST_CXX = None
+CXX = None
+HOST = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+CXXFLAGS_x86_64-unknown-linux-gnu = None
+CXXFLAGS_x86_64_unknown_linux_gnu = None
+HOST_CXXFLAGS = None
+CXXFLAGS = None
+DEBUG = Some("true")
+running: "c++" "-O2" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-m64" "-Wall" "-Wextra" "-o" "/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/build/imgui-sys-71a1fbb9b5a4c6b6/out/third-party/cimgui/cimgui/drawList.o" "-c" "third-party/cimgui/cimgui/drawList.cpp"
+exit code: 0
+TARGET = Some("x86_64-unknown-linux-gnu")
+OPT_LEVEL = Some("2")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+CXX_x86_64-unknown-linux-gnu = None
+CXX_x86_64_unknown_linux_gnu = None
+HOST_CXX = None
+CXX = None
+HOST = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+CXXFLAGS_x86_64-unknown-linux-gnu = None
+CXXFLAGS_x86_64_unknown_linux_gnu = None
+HOST_CXXFLAGS = None
+CXXFLAGS = None
+DEBUG = Some("true")
+running: "c++" "-O2" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-m64" "-Wall" "-Wextra" "-o" "/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/build/imgui-sys-71a1fbb9b5a4c6b6/out/third-party/cimgui/cimgui/listClipper.o" "-c" "third-party/cimgui/cimgui/listClipper.cpp"
+exit code: 0
+TARGET = Some("x86_64-unknown-linux-gnu")
+OPT_LEVEL = Some("2")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+CXX_x86_64-unknown-linux-gnu = None
+CXX_x86_64_unknown_linux_gnu = None
+HOST_CXX = None
+CXX = None
+HOST = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+CXXFLAGS_x86_64-unknown-linux-gnu = None
+CXXFLAGS_x86_64_unknown_linux_gnu = None
+HOST_CXXFLAGS = None
+CXXFLAGS = None
+DEBUG = Some("true")
+running: "c++" "-O2" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-m64" "-Wall" "-Wextra" "-o" "/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/build/imgui-sys-71a1fbb9b5a4c6b6/out/third-party/cimgui/imgui/imgui.o" "-c" "third-party/cimgui/imgui/imgui.cpp"
+cargo:warning=In file included from third-party/cimgui/imgui/imgui.cpp:588:
+cargo:warning=third-party/cimgui/imgui/imgui.h: Dans l'instanciation de « void ImVector<T>::reserve(int) [with T = ImGuiColumnsSet] » :
+cargo:warning=third-party/cimgui/imgui/imgui.h:1060:89:   requis par « void ImVector<T>::push_back(const value_type&) [with T = ImGuiColumnsSet; ImVector<T>::value_type = ImGuiColumnsSet] »
+cargo:warning=third-party/cimgui/imgui/imgui.cpp:10980:55:   requis depuis ici
+cargo:warning=third-party/cimgui/imgui/imgui.h:1054:19: warning: « void* memcpy(void*, const void*, size_t) » écriture dans un objet du type non trivialement copiable « struct ImGuiColumnsSet »; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+cargo:warning=             memcpy(new_data, Data, (size_t)Size * sizeof(T));
+cargo:warning=             ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cargo:warning=In file included from third-party/cimgui/imgui/imgui.cpp:590:
+cargo:warning=third-party/cimgui/imgui/imgui_internal.h:427:8: note: « struct ImGuiColumnsSet » déclaré ici
+cargo:warning= struct ImGuiColumnsSet
+cargo:warning=        ^~~~~~~~~~~~~~~
+exit code: 0
+TARGET = Some("x86_64-unknown-linux-gnu")
+OPT_LEVEL = Some("2")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+CXX_x86_64-unknown-linux-gnu = None
+CXX_x86_64_unknown_linux_gnu = None
+HOST_CXX = None
+CXX = None
+HOST = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+CXXFLAGS_x86_64-unknown-linux-gnu = None
+CXXFLAGS_x86_64_unknown_linux_gnu = None
+HOST_CXXFLAGS = None
+CXXFLAGS = None
+DEBUG = Some("true")
+running: "c++" "-O2" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-m64" "-Wall" "-Wextra" "-o" "/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/build/imgui-sys-71a1fbb9b5a4c6b6/out/third-party/cimgui/imgui/imgui_demo.o" "-c" "third-party/cimgui/imgui/imgui_demo.cpp"
+exit code: 0
+TARGET = Some("x86_64-unknown-linux-gnu")
+OPT_LEVEL = Some("2")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+CXX_x86_64-unknown-linux-gnu = None
+CXX_x86_64_unknown_linux_gnu = None
+HOST_CXX = None
+CXX = None
+HOST = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+CXXFLAGS_x86_64-unknown-linux-gnu = None
+CXXFLAGS_x86_64_unknown_linux_gnu = None
+HOST_CXXFLAGS = None
+CXXFLAGS = None
+DEBUG = Some("true")
+running: "c++" "-O2" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-m64" "-Wall" "-Wextra" "-o" "/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/build/imgui-sys-71a1fbb9b5a4c6b6/out/third-party/cimgui/imgui/imgui_draw.o" "-c" "third-party/cimgui/imgui/imgui_draw.cpp"
+cargo:warning=third-party/cimgui/imgui/imgui_draw.cpp: Dans la fonction membre « void ImDrawList::ClearFreeMemory() »:
+cargo:warning=third-party/cimgui/imgui/imgui_draw.cpp:336:66: warning: « void* memset(void*, int, size_t) » effacement d'un objet du type non trivial « ImVector<ImDrawChannel>::value_type » {aka « struct ImDrawChannel »}; use assignment or value-initialization instead [-Wclass-memaccess]
+cargo:warning=         if (i == 0) memset(&_Channels[0], 0, sizeof(_Channels[0]));  // channel 0 is a copy of CmdBuffer/IdxBuffer, don't destruct again
+cargo:warning=                                                                  ^
+cargo:warning=In file included from third-party/cimgui/imgui/imgui_draw.cpp:16:
+cargo:warning=third-party/cimgui/imgui/imgui.h:1360:8: note: « ImVector<ImDrawChannel>::value_type » {aka « struct ImDrawChannel »} déclaré ici
+cargo:warning= struct ImDrawChannel
+cargo:warning=        ^~~~~~~~~~~~~
+cargo:warning=third-party/cimgui/imgui/imgui_draw.cpp: Dans la fonction membre « void ImDrawList::ChannelsSplit(int) »:
+cargo:warning=third-party/cimgui/imgui/imgui_draw.cpp:469:51: warning: « void* memset(void*, int, size_t) » effacement d'un objet du type non trivial « ImVector<ImDrawChannel>::value_type » {aka « struct ImDrawChannel »}; use assignment or value-initialization instead [-Wclass-memaccess]
+cargo:warning=     memset(&_Channels[0], 0, sizeof(ImDrawChannel));
+cargo:warning=                                                   ^
+cargo:warning=In file included from third-party/cimgui/imgui/imgui_draw.cpp:16:
+cargo:warning=third-party/cimgui/imgui/imgui.h:1360:8: note: « ImVector<ImDrawChannel>::value_type » {aka « struct ImDrawChannel »} déclaré ici
+cargo:warning= struct ImDrawChannel
+cargo:warning=        ^~~~~~~~~~~~~
+cargo:warning=third-party/cimgui/imgui/imgui_draw.cpp: Dans la fonction membre « void ImDrawList::ChannelsSetCurrent(int) »:
+cargo:warning=third-party/cimgui/imgui/imgui_draw.cpp:529:86: warning: « void* memcpy(void*, const void*, size_t) » écriture dans un objet du type non trivialement copiable « class ImVector<ImDrawCmd> »; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+cargo:warning=     memcpy(&_Channels.Data[_ChannelsCurrent].CmdBuffer, &CmdBuffer, sizeof(CmdBuffer)); // copy 12 bytes, four times
+cargo:warning=                                                                                      ^
+cargo:warning=In file included from third-party/cimgui/imgui/imgui_draw.cpp:16:
+cargo:warning=third-party/cimgui/imgui/imgui.h:1012:7: note: « class ImVector<ImDrawCmd> » déclaré ici
+cargo:warning= class ImVector
+cargo:warning=       ^~~~~~~~
+cargo:warning=third-party/cimgui/imgui/imgui_draw.cpp:530:86: warning: « void* memcpy(void*, const void*, size_t) » écriture dans un objet du type non trivialement copiable « class ImVector<short unsigned int> »; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+cargo:warning=     memcpy(&_Channels.Data[_ChannelsCurrent].IdxBuffer, &IdxBuffer, sizeof(IdxBuffer));
+cargo:warning=                                                                                      ^
+cargo:warning=In file included from third-party/cimgui/imgui/imgui_draw.cpp:16:
+cargo:warning=third-party/cimgui/imgui/imgui.h:1012:7: note: « class ImVector<short unsigned int> » déclaré ici
+cargo:warning= class ImVector
+cargo:warning=       ^~~~~~~~
+cargo:warning=third-party/cimgui/imgui/imgui_draw.cpp:532:86: warning: « void* memcpy(void*, const void*, size_t) » écriture dans un objet du type non trivialement copiable « class ImVector<ImDrawCmd> »; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+cargo:warning=     memcpy(&CmdBuffer, &_Channels.Data[_ChannelsCurrent].CmdBuffer, sizeof(CmdBuffer));
+cargo:warning=                                                                                      ^
+cargo:warning=In file included from third-party/cimgui/imgui/imgui_draw.cpp:16:
+cargo:warning=third-party/cimgui/imgui/imgui.h:1012:7: note: « class ImVector<ImDrawCmd> » déclaré ici
+cargo:warning= class ImVector
+cargo:warning=       ^~~~~~~~
+cargo:warning=third-party/cimgui/imgui/imgui_draw.cpp:533:86: warning: « void* memcpy(void*, const void*, size_t) » écriture dans un objet du type non trivialement copiable « class ImVector<short unsigned int> »; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+cargo:warning=     memcpy(&IdxBuffer, &_Channels.Data[_ChannelsCurrent].IdxBuffer, sizeof(IdxBuffer));
+cargo:warning=                                                                                      ^
+cargo:warning=In file included from third-party/cimgui/imgui/imgui_draw.cpp:16:
+cargo:warning=third-party/cimgui/imgui/imgui.h:1012:7: note: « class ImVector<short unsigned int> » déclaré ici
+cargo:warning= class ImVector
+cargo:warning=       ^~~~~~~~
+cargo:warning=third-party/cimgui/imgui/imgui.h: Dans l'instanciation de « void ImVector<T>::reserve(int) [with T = ImDrawChannel] » :
+cargo:warning=third-party/cimgui/imgui/imgui.h:1046:92:   requis par « void ImVector<T>::resize(int) [with T = ImDrawChannel] »
+cargo:warning=third-party/cimgui/imgui/imgui_draw.cpp:463:40:   requis depuis ici
+cargo:warning=third-party/cimgui/imgui/imgui.h:1054:19: warning: « void* memcpy(void*, const void*, size_t) » écriture dans un objet du type non trivialement copiable « struct ImDrawChannel »; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+cargo:warning=             memcpy(new_data, Data, (size_t)Size * sizeof(T));
+cargo:warning=             ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cargo:warning=third-party/cimgui/imgui/imgui.h:1360:8: note: « struct ImDrawChannel » déclaré ici
+cargo:warning= struct ImDrawChannel
+cargo:warning=        ^~~~~~~~~~~~~
+exit code: 0
+TARGET = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+AR_x86_64-unknown-linux-gnu = None
+AR_x86_64_unknown_linux_gnu = None
+HOST_AR = None
+AR = None
+TARGET = Some("x86_64-unknown-linux-gnu")
+TARGET = Some("x86_64-unknown-linux-gnu")
+running: "ar" "crs" "/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/build/imgui-sys-71a1fbb9b5a4c6b6/out/libcimgui.a" "/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/build/imgui-sys-71a1fbb9b5a4c6b6/out/third-party/cimgui/cimgui/cimgui.o" "/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/build/imgui-sys-71a1fbb9b5a4c6b6/out/third-party/cimgui/cimgui/fontAtlas.o" "/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/build/imgui-sys-71a1fbb9b5a4c6b6/out/third-party/cimgui/cimgui/drawList.o" "/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/build/imgui-sys-71a1fbb9b5a4c6b6/out/third-party/cimgui/cimgui/listClipper.o" "/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/build/imgui-sys-71a1fbb9b5a4c6b6/out/third-party/cimgui/imgui/imgui.o" "/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/build/imgui-sys-71a1fbb9b5a4c6b6/out/third-party/cimgui/imgui/imgui_demo.o" "/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/build/imgui-sys-71a1fbb9b5a4c6b6/out/third-party/cimgui/imgui/imgui_draw.o"
+exit code: 0
+TARGET = Some("x86_64-unknown-linux-gnu")
+cargo:rustc-link-lib=static=cimgui
+cargo:rustc-link-search=native=/home/finch/Documents/Desktop Projets/platform_finisher/target/rls/debug/build/imgui-sys-71a1fbb9b5a4c6b6/out
+TARGET = Some("x86_64-unknown-linux-gnu")
+HOST = Some("x86_64-unknown-linux-gnu")
+CXXSTDLIB_x86_64-unknown-linux-gnu = None
+CXXSTDLIB_x86_64_unknown_linux_gnu = None
+HOST_CXXSTDLIB = None
+CXXSTDLIB = None
+TARGET = Some("x86_64-unknown-linux-gnu")
+cargo:rustc-link-lib=stdc++

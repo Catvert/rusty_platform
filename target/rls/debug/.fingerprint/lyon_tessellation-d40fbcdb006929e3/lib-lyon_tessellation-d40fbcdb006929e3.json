@@ -1,0 +1,1 @@
+{"rustc":8427573639476503995,"features":"[]","target":9904608462317362771,"profile":5183445953317491579,"path":16842542201968674921,"deps":[["lyon_path v0.10.1","lyon_path",288251835798795845],["sid v0.5.2","sid",3258228266148414246]],"local":[{"Precalculated":"0.10.2"}],"rustflags":[],"edition":"Edition2015"}

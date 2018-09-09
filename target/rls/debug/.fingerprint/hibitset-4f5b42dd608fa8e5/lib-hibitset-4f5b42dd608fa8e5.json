@@ -1,0 +1,1 @@
+{"rustc":8427573639476503995,"features":"[\"default\", \"parallel\", \"rayon\"]","target":4831661579129153905,"profile":5183445953317491579,"path":16930186347109983228,"deps":[["atom v0.3.5","atom",15751651548184561156],["rayon v1.0.2","rayon",11980764600586738411]],"local":[{"Precalculated":"0.5.1"}],"rustflags":[],"edition":"Edition2015"}

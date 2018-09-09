@@ -1,0 +1,10 @@
+
+target/debug/incremental/
+
+target/debug/deps/
+
+target/debug/build/
+
+target/debug/\.fingerprint/
+
+\.idea/
