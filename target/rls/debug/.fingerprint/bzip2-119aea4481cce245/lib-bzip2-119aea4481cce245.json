@@ -1,1 +1,0 @@
-{"rustc":8427573639476503995,"features":"[]","target":6005836630559297130,"profile":5183445953317491579,"path":16818664948424713098,"deps":[["bzip2-sys v0.1.6","bzip2_sys",12846214407408873978],["libc v0.2.43","libc",6465031974784254892]],"local":[{"Precalculated":"0.3.3"}],"rustflags":[],"edition":"Edition2015"}
