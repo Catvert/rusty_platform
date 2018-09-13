@@ -25,6 +25,7 @@ pub struct MainScene {
     resources_manager: RefRM,
     input_manager: RefInputManager,
     background: Image,
+    logo: Image,
     show_settings_window: bool,
 }
 
@@ -32,7 +33,8 @@ impl MainScene {
     pub fn new(ctx: &mut Context, input_manager: RefInputManager) -> Self {
         let resources_manager = RefRM::default();
         let background = resources_manager.borrow_mut().load_or_get_texture(ctx, "/game/mainmenu.png").unwrap().unwrap().clone();
-        MainScene { resources_manager, input_manager, background, show_settings_window: false }
+        let logo = resources_manager.borrow_mut().load_or_get_texture(ctx, "/game/logo.png").unwrap().unwrap().clone();
+        MainScene { resources_manager, input_manager, background, logo, show_settings_window: false }
     }
 }
 
@@ -47,6 +49,14 @@ impl Scene for MainScene {
         graphics::draw_ex(ctx, &self.background, DrawParam {
             dest: Point2::new(0.0, 0.0),
             scale: Point2::new(screen_size.0 as f32 / self.background.width() as f32, screen_size.1 as f32 / self.background.height() as f32),
+            ..Default::default()
+        })?;
+
+        let logo_size = Vector2::new(600., 125.);
+
+        graphics::draw_ex(ctx, &self.logo, DrawParam {
+            dest: Point2::new(screen_size.0 as f32 / 2. - logo_size.x / 2., 50.),
+            scale: Point2::new(logo_size.x / self.logo.width() as f32, logo_size.y / self.logo.height() as f32),
             ..Default::default()
         })?;
 

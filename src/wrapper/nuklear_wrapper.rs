@@ -133,6 +133,15 @@ impl NuklearWrapper {
         }
 
         {
+            let checkbox_style = style.checkbox_mut();
+            checkbox_style.set_normal(StyleItem::color(color_rgba_f(0.10, 0.09, 0.12, 1.00)));
+            checkbox_style.set_hover(StyleItem::color(color_rgba_f(0.24, 0.23, 0.29, 1.00)));
+            checkbox_style.set_active(StyleItem::color(color_rgba_f(0.56, 0.56, 0.58, 1.00)));
+
+            font_white!(checkbox_style, TEXT);
+        }
+
+        {
             let mut button_style = style.button().clone();
             button_style.set_border_color(color_rgba(0, 0, 0, 0));
 

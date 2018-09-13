@@ -9,6 +9,9 @@ use na::Vector2;
 
 use nuklear::Context as NkCtx;
 use nuklear::LayoutFormat;
+use nuklear::Vec2;
+use nuklear::TextAlignment;
+use nuklear::Flags;
 
 lazy_static! {
     static ref ACTIONS_WRAPPERS: HashMap<ActionsWrapper, &'static str> = {
@@ -45,7 +48,43 @@ impl ActionsWrapper {
 }
 
 fn draw_ui_action(mut action: Actions, nk_ctx: &mut NkCtx) -> Actions {
-    
+    let width = nk_ctx.widget_width();
+
+    let selected_action_text = &format!("{:?}", ActionsWrapper::from_action(&action));
+
+    if nk_ctx.menu_begin_text(selected_action_text, TextAlignment::NK_TEXT_CENTERED as Flags, Vec2 { x: 200., y: 200. }) {
+        nk_ctx.layout_row_dynamic(30., 1);
+        match action {
+            Actions::Empty => {
+                nk_ctx.text_wrap("Vide !");
+            },
+            Actions::Move(ref mut mv) => {
+                nk_ctx.slider_float(0., &mut mv.x, 0., 1.);
+                nk_ctx.slider_float(0., &mut mv.y, 0., 1.);
+            },
+            Actions::PhysicsMove(ref mut mv) => {
+              //  nk_ctx.text_wrap("Vide !");
+              //  nk_ctx.button_text("hi");
+                nk_ctx.property_float("x".into(), 0., &mut mv.x, 100., 1., 10.);
+                nk_ctx.property_float("y".into(), 0., &mut mv.y, 100., 1., 10.);
+            },
+            Actions::EntityAction(_, _) => {},
+            Actions::MultipleActions(_) => {},
+        }
+
+        if nk_ctx.combo_begin_text(selected_action_text, Vec2 { x: 200., y: 200. }) {
+            nk_ctx.layout_row_dynamic(130., 1);
+            for action_wrap in ACTIONS_WRAPPERS.iter() {
+                if nk_ctx.combo_item_text(action_wrap.1, TextAlignment::NK_TEXT_CENTERED as Flags) {
+                    action = action_wrap.0.get_action();
+                }
+            }
+
+            nk_ctx.combo_end();
+        }
+
+        nk_ctx.menu_end();
+    }
   /*  if ui.button(im_str!("action"), (100., 0.)) {
         ui.open_popup(popup_id);
     }
@@ -101,12 +140,13 @@ impl NkEditor for RectComponent {
 impl NkEditor for InputComponent {
     fn draw_ui(&mut self, nk_ctx: &mut NkCtx) {
         for (key, jp, action) in self.input_actions.iter_mut() {
-            nk_ctx.layout_row_dynamic(30., 2);
+            nk_ctx.layout_row_dynamic(30., 3);
             if nk_ctx.button_text(&format!("{}", Keycode::from_i32(*key).unwrap())) {
 
             }
             nk_ctx.checkbox_text("jp", jp);
             *action = draw_ui_action(action.clone(), nk_ctx);
+            break;
         }
 
        /* for (index, (key, jp, action)) in self.input_actions.iter_mut().enumerate() {

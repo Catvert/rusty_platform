@@ -513,17 +513,18 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
 
                 nk_ctx.layout_row_dynamic(25., 1);
 
-                if nk_ctx.button_text("Ajouter un composant") {
-                    self.imgui_helper.select_entity_view_add_component_popup_show = true;
-                }
-
-                if self.imgui_helper.select_entity_view_add_component_popup_show && nk_ctx.popup_begin(PopupType::NK_POPUP_STATIC, "add_comp_popup".into(), 0, NkRect { x: 0., y: 0., w: 200., h: 200. }) {
+                let width = nk_ctx.widget_width();
+                if nk_ctx.menu_begin_text("Ajouter un composant".into(), TextAlignment::NK_TEXT_CENTERED as Flags, Vec2 { x: width, y: 200. }) {
                     nk_ctx.layout_row_dynamic(30., 1);
+
+                  //  nk_ctx.combo_begin_text()
+
                     if nk_ctx.button_text("Ajouter") {
                         self.imgui_helper.select_entity_view_add_component_popup_show = false;
-                        nk_ctx.popup_close();
+                        nk_ctx.menu_close();
                     }
-                    nk_ctx.popup_end();
+
+                    nk_ctx.menu_end();
                 }
             }
             nk_ctx.end();

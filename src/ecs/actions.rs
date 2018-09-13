@@ -11,7 +11,7 @@ pub struct ActionComponent {
     pub actions_remaining: Vec<Actions>
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub enum Actions {
     Empty,
     Move(Vector2<f32>),
