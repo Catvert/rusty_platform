@@ -20,6 +20,10 @@ use utils::input_manager::RefInputManager;
 use nuklear::Flags;
 use wrapper::nuklear_wrapper::NkFontsHolder;
 use wrapper::nuklear_wrapper::NkFonts;
+use imgui::Ui;
+use wrapper::imgui_wrapper::CenteredWindow;
+use imgui::ImGuiCol;
+use imgui::ImGuiCond;
 
 pub struct MainScene {
     resources_manager: RefRM,
@@ -63,44 +67,34 @@ impl Scene for MainScene {
         Ok(NextState::Continue)
     }
 
-    fn draw_ui(&mut self, window_size: Vector2<u32>, nk_ctx: &mut NkCtx, nk_fonts: &NkFontsHolder) -> SceneState {
+    fn draw_ui(&mut self, window_size: Vector2<u32>, ui: &Ui) -> SceneState {
         let mut result = NextState::Continue;
 
-        let background = nk_ctx.style_mut().window_mut().fixed_background();
-        nk_ctx.style_mut().window_mut().set_fixed_background(StyleItem::hide());
-        if nk_ctx.begin("Menu principal".into(), Rect { x: window_size.x as f32 / 2. - 200. / 2., y: window_size.y as f32 / 2. - 200. / 2., w: 200., h: 200. }, PanelFlags::NK_WINDOW_NO_SCROLLBAR as Flags) {
-            nk_ctx.layout_row_dynamic(180. / 4., 1);
+        let mut result = NextState::Continue;
+        ui.with_color_vars(&[(ImGuiCol::WindowBg, (0., 0., 0., 0.))], || {
+            ui.window(im_str!("Menu principal")).title_bar(false).movable(false).resizable(false).center(ui.frame_size(), (150., 200.), ImGuiCond::Always, ImGuiCond::Always).build(|| {
+                if ui.button(im_str!("Jouer"), (-1., 0.)) {
+                    result = NextState::Push(Box::new(GameScene::new(window_size.clone(),self.resources_manager.clone(), self.input_manager.clone(), String::from("test.lvl"))))
+                }
 
-            nk_ctx.style_set_font(nk_fonts.get_font(NkFonts::BigFont));
+                if ui.button(im_str!("Nouveau"), (-1., 0.)) {
+                    result = NextState::Push(Box::new(EditorScene::new(window_size.clone(),self.resources_manager.clone(), self.input_manager.clone(), String::from("test.lvl"))))
+                }
 
-            if nk_ctx.button_text("Jouer") {
-                result = NextState::Push(Box::new(GameScene::new(window_size.clone(),self.resources_manager.clone(), self.input_manager.clone(), String::from("test.lvl"))))
-            }
-            if nk_ctx.button_text("Nouveau") {
-                result = NextState::Push(Box::new(EditorScene::new(window_size.clone(),self.resources_manager.clone(), self.input_manager.clone(), String::from("test.lvl"))))
-            }
-            if nk_ctx.button_text("Options") {
-                self.show_settings_window = true;
-            }
-            if nk_ctx.button_text("Quitter") {
-                result = NextState::Pop;
-            }
+                if ui.button(im_str!("Options"), (-1., 0.)) {
+                    self.show_settings_window = true;
+                }
 
-            nk_ctx.style_set_font(nk_fonts.get_font(NkFonts::Default));
-        }
-        nk_ctx.end();
-        nk_ctx.style_mut().window_mut().set_fixed_background(background);
+                if ui.button(im_str!("Quitter"), (-1., 0.)) {
+                    result = NextState::Pop;
+                }
+            });
+        });
 
         if self.show_settings_window {
-            if nk_ctx.begin("Options".into(), Rect { x: 0., y: window_size.y as f32 / 2. - 200. / 2., w: 200., h: 200. }, PanelFlags::NK_WINDOW_TITLE as Flags | PanelFlags::NK_WINDOW_NO_SCROLLBAR as Flags | PanelFlags::NK_WINDOW_MOVABLE as Flags | PanelFlags::NK_WINDOW_CLOSABLE as Flags) {
-                nk_ctx.layout_row_dynamic(180. / 4., 1);
-                if nk_ctx.button_text("Quitter") {
+            ui.window(im_str!("Options")).resizable(false).center(ui.frame_size(), (150., 200.), ImGuiCond::Always, ImGuiCond::Once).build(||{
 
-                }
-            } else {
-                self.show_settings_window = false;
-            }
-            nk_ctx.end();
+            });
         }
 
         Ok(result)

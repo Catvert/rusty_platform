@@ -7,4 +7,4 @@ pub mod serialization;
 pub mod chunk;
 pub mod render;
 pub mod rect;
-pub mod nk_editor;
+pub mod imgui_editor;

@@ -28,7 +28,6 @@ use ecs::actions::Actions;
 use ecs::physics::PhysicsComponent;
 use ecs::physics::BodyType;
 use specs::saveload::U64Marker;
-use ecs::nk_editor::NkEditor;
 use utils::sprite::SpriteMode;
 use utils::sprite::Sprite;
 
@@ -48,6 +47,9 @@ use nuklear::Rect as NkRect;
 use nuklear::Vec2;
 use nuklear::PopupType;
 use wrapper::nuklear_wrapper::NkFontsHolder;
+use ecs::imgui_editor::ImGuiEditor;
+
+use imgui::Ui;
 
 lazy_static! {
     static ref COMPONENTS_WRAPPERS: HashMap<ComponentsWrapper, &'static str> = {
@@ -89,11 +91,11 @@ macro_rules! impl_components_wrapper {
                 }
             }
 
-            fn draw_ui(&self, ent: Entity, world: &mut World, nk_ctx: &mut NkCtx) {
+            fn draw_ui(&self, ent: Entity, world: &mut World,  ui: &Ui) {
                 match *self {
                     $($wrapper => {
                         if let Some(c) = world.write_storage::<$comp>().get_mut(ent) {
-                            c.draw_ui(nk_ctx);
+                            c.draw_ui(ui);
                         }
                     }),*
                 }
@@ -474,9 +476,9 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
         Ok(NextState::Continue)
     }
 
-    fn draw_ui(&mut self, window_size: Vector2<u32>, nk_ctx: &mut NkCtx, nk_fonts: &NkFontsHolder) -> SceneState {
+    fn draw_ui(&mut self, window_size: Vector2<u32>, ui: &Ui) -> SceneState {
         let mut next_state = NextState::Continue;
-        if nk_ctx.begin("Options".into(), NkRect { x: 0., y: window_size.y as f32 / 2. - 200. / 2., w: 200., h: 200. }, PanelFlags::NK_WINDOW_TITLE as Flags | PanelFlags::NK_WINDOW_NO_SCROLLBAR as Flags | PanelFlags::NK_WINDOW_MOVABLE as Flags | PanelFlags::NK_WINDOW_CLOSABLE as Flags) {
+        /*if nk_ctx.begin("Options".into(), NkRect { x: 0., y: window_size.y as f32 / 2. - 200. / 2., w: 200., h: 200. }, PanelFlags::NK_WINDOW_TITLE as Flags | PanelFlags::NK_WINDOW_NO_SCROLLBAR as Flags | PanelFlags::NK_WINDOW_MOVABLE as Flags | PanelFlags::NK_WINDOW_CLOSABLE as Flags) {
             if nk_ctx.menu_begin_text("Fichier", TextAlignment::NK_TEXT_RIGHT as Flags, Vec2 { x: 100., y: 100. }) {
                 nk_ctx.menu_item_text("Play", TextAlignment::NK_TEXT_RIGHT as Flags);
                 nk_ctx.menu_end();
@@ -601,7 +603,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
 
             imgui_hovered
         };
-*/
+*/*/
         Ok(next_state)
     }
 

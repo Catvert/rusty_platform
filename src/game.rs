@@ -29,6 +29,7 @@ use na::Vector2;
 use wrapper::nuklear_wrapper::NuklearWrapper;
 use scenes::Scene;
 use ggez::graphics::Image;
+use wrapper::imgui_wrapper::ImGuiWrapper;
 
 
 const GAME_CONFIG_PATH: &'static str = "resources/config.ron";
@@ -81,7 +82,7 @@ impl Default for GameConfig {
 
 pub struct Game {
     context: Context,
-    nk_wrapper: NuklearWrapper,
+    imgui_wrapper: ImGuiWrapper,
     scenes: VecDeque<Box<dyn Scene>>,
     input_manager: RefInputManager,
     exit: bool,
@@ -113,13 +114,13 @@ impl Game {
 
         match ContextBuilder::new("platform_finisher", "finch").window_setup(window_setup).window_mode(window_mode).build() {
             Ok(mut context) => {
-                let nuklear_wrapper = NuklearWrapper::new(&mut context);
+                let imgui_wrapper = ImGuiWrapper::new(&mut context);
                 let input_manager = RefInputManager::default();
 
                 let mut scenes: VecDeque<Box<dyn Scene>> = VecDeque::new();
                 scenes.push_back(Box::new(MainScene::new(&mut context, input_manager.clone())));
 
-                Game { context, nk_wrapper: nuklear_wrapper, scenes, input_manager, exit: false }
+                Game { context, imgui_wrapper, scenes, input_manager, exit: false }
             },
             Err(e) => panic!("Impossible d'initialiser le jeu ! Erreur : {}", e)
         }
@@ -154,11 +155,9 @@ impl Game {
         while !self.exit {
             self.context.timer_context.tick();
 
-            self.nk_wrapper.get().0.input_begin();
-
             for event in event_pump.poll_iter() {
                 self.context.process_event(&event);
-                self.nk_wrapper.process_event(&event, &self.context);
+                self.imgui_wrapper.process_event(&event, &self.context);
                 match event {
                     Quit { .. } => {
                         self.exit = true;
@@ -183,14 +182,6 @@ impl Game {
                             self.input_manager.lock().unwrap().update_key(key, false);
                         }
                     }
-                    TextEditing {
-                        text,
-                        start,
-                        length,
-                        ..
-                    } => {},
-                    TextInput { text, .. } => {
-                    },
                     MouseButtonDown {
                         mouse_btn, x, y, ..
                     } => {
@@ -235,9 +226,7 @@ impl Game {
                 }
             }
 
-            self.nk_wrapper.get().0.input_end();
-
-            let Game { ref mut context, ref mut scenes, ref mut nk_wrapper, ref mut exit, .. } = self;
+            let Game { ref mut context, ref mut scenes, ref mut imgui_wrapper, ref mut exit, .. } = self;
 
             {
                 while timer::check_update_time(context, constants::DESIRED_FPS) {
@@ -268,14 +257,10 @@ impl Game {
                 let window_size = context.gfx_context.window.drawable_size();
                 let window_size = Vector2::new(window_size.0, window_size.1);
 
-                {
-                    let (nk_ctx, fonts_holder) = nk_wrapper.get();
-
-                    let result = scenes.front_mut().unwrap().draw_ui(window_size, nk_ctx, fonts_holder);
-                    Self::handle_scene_state(result, scenes, exit);
-                }
-
-                nk_wrapper.render(context, window_size);
+                imgui_wrapper.render_ui(context, move |ui| {
+                    let result = scenes.front_mut().unwrap().draw_ui( window_size, ui);
+                    Self::handle_scene_state(result, scenes, exit)
+                });
             }
 
             graphics::present(context);

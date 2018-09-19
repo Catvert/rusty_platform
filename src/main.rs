@@ -29,6 +29,11 @@ extern crate nuklear;
 extern crate nuklear_backend_gfx;
 extern crate core;
 
+#[macro_use]
+extern crate imgui;
+extern crate imgui_sys;
+extern crate imgui_gfx_renderer;
+
 mod wrapper;
 mod ecs;
 mod scenes;

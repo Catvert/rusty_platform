@@ -17,6 +17,8 @@ use utils::resources_manager::RefRM;
 use ecs::physics::PhysicsSystem;
 use wrapper::nuklear_wrapper::NkFontsHolder;
 
+use imgui::Ui;
+
 pub struct GameScene<'a, 'b> {
     level: Level<'a, 'b>,
     camera: Camera
@@ -47,7 +49,7 @@ impl<'a, 'b> Scene for GameScene<'a, 'b> {
         Ok(NextState::Continue)
     }
 
-    fn draw_ui(&mut self, window_size: Vector2<u32>, nk_ctx: &mut NkCtx, nk_fonts: &NkFontsHolder) -> SceneState {
+    fn draw_ui(&mut self, window_size: Vector2<u32>, ui: &Ui) -> SceneState {
         Ok(NextState::Continue)
     }
 
