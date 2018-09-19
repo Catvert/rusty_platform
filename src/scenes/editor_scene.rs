@@ -48,14 +48,16 @@ use nuklear::Vec2;
 use nuklear::PopupType;
 use wrapper::nuklear_wrapper::NkFontsHolder;
 use ecs::imgui_editor::ImGuiEditor;
-
+use imgui_sys;
 use imgui::Ui;
+use imgui::ImStr;
+use imgui::ImString;
 
 lazy_static! {
-    static ref COMPONENTS_WRAPPERS: HashMap<ComponentsWrapper, &'static str> = {
+    static ref COMPONENTS_WRAPPERS: HashMap<ComponentsWrapper, &'static ImStr> = {
         let mut wrappers = HashMap::new();
-        wrappers.insert(ComponentsWrapper::Rect, "rect");
-        wrappers.insert(ComponentsWrapper::Input, "input");
+        wrappers.insert(ComponentsWrapper::Rect, im_str!("rect"));
+        wrappers.insert(ComponentsWrapper::Input, im_str!("input"));
         wrappers
     };
 }
@@ -107,7 +109,7 @@ macro_rules! impl_components_wrapper {
 impl_components_wrapper!([ComponentsWrapper::Rect => RectComponent, ComponentsWrapper::Input => InputComponent]);
 
 struct NkMemoryHelper {
-    pub select_entity_view_component_selected: usize,
+    pub select_entity_view_component_selected: ComponentsWrapper,
     pub select_entity_view_add_component_popup_selected: ComponentsWrapper,
     pub select_entity_view_add_component_popup_show: bool,
 }
@@ -115,7 +117,7 @@ struct NkMemoryHelper {
 impl NkMemoryHelper {
     fn new() -> Self {
         NkMemoryHelper {
-            select_entity_view_component_selected: 0,
+            select_entity_view_component_selected: ComponentsWrapper::Rect,
             select_entity_view_add_component_popup_selected: ComponentsWrapper::Rect,
             select_entity_view_add_component_popup_show: false,
         }
@@ -478,63 +480,6 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
 
     fn draw_ui(&mut self, window_size: Vector2<u32>, ui: &Ui) -> SceneState {
         let mut next_state = NextState::Continue;
-        /*if nk_ctx.begin("Options".into(), NkRect { x: 0., y: window_size.y as f32 / 2. - 200. / 2., w: 200., h: 200. }, PanelFlags::NK_WINDOW_TITLE as Flags | PanelFlags::NK_WINDOW_NO_SCROLLBAR as Flags | PanelFlags::NK_WINDOW_MOVABLE as Flags | PanelFlags::NK_WINDOW_CLOSABLE as Flags) {
-            if nk_ctx.menu_begin_text("Fichier", TextAlignment::NK_TEXT_RIGHT as Flags, Vec2 { x: 100., y: 100. }) {
-                nk_ctx.menu_item_text("Play", TextAlignment::NK_TEXT_RIGHT as Flags);
-                nk_ctx.menu_end();
-            }
-        }
-        nk_ctx.end();
-
-        if let EditorMode::Select(entity, _) = self.mode.clone() {
-            if nk_ctx.begin(format!("Entité {}", entity.id()).into(), NkRect { x: 0., y: window_size.y as f32 / 2. - 200. / 2., w: 200., h: 300. }, PanelFlags::NK_WINDOW_TITLE as Flags | PanelFlags::NK_WINDOW_NO_SCROLLBAR as Flags | PanelFlags::NK_WINDOW_MOVABLE as Flags | PanelFlags::NK_WINDOW_CLOSABLE as Flags) {
-                let av_comps: Vec<(ComponentsWrapper, &'static str)> = COMPONENTS_WRAPPERS.iter().filter(|c| c.0.has_comp(entity, self.level.get_world())).map(|c| (c.0.clone(), *c.1)).collect();
-
-                nk_ctx.layout_row_dynamic(25., 2);
-
-                let width = nk_ctx.widget_width();
-                if nk_ctx.combo_begin_text(av_comps.get(self.imgui_helper.select_entity_view_component_selected).map_or(&"Aucun", |av_c| &av_c.1), Vec2 { x: width, y: 200. }) {
-                    nk_ctx.layout_row_dynamic(25., 1);
-                    for i in 0..av_comps.len() {
-                        if nk_ctx.combo_item_text(av_comps[i].1, TextAlignment::NK_TEXT_CENTERED as Flags) {
-                            self.imgui_helper.select_entity_view_component_selected = i;
-                        }
-                    }
-                    nk_ctx.combo_end();
-                }
-
-                if nk_ctx.button_text("Supprimer") {
-                    if let Some(comp) = av_comps.iter().nth(self.imgui_helper.select_entity_view_component_selected) {
-                        comp.0.delete(entity, self.level.get_world());
-                    }
-                }
-
-                if let Some(comp) = av_comps.get(self.imgui_helper.select_entity_view_component_selected) {
-                    comp.0.draw_ui(entity, self.level.get_world_mut(), nk_ctx);
-                }
-
-                nk_ctx.layout_row_dynamic(25., 1);
-
-                let width = nk_ctx.widget_width();
-                if nk_ctx.menu_begin_text("Ajouter un composant".into(), TextAlignment::NK_TEXT_CENTERED as Flags, Vec2 { x: width, y: 200. }) {
-                    nk_ctx.layout_row_dynamic(30., 1);
-
-                  //  nk_ctx.combo_begin_text()
-
-                    if nk_ctx.button_text("Ajouter") {
-                        self.imgui_helper.select_entity_view_add_component_popup_show = false;
-                        nk_ctx.menu_close();
-                    }
-
-                    nk_ctx.menu_end();
-                }
-            }
-            nk_ctx.end();
-        }
-
-        self.is_ui_hover = nk_ctx.window_is_any_hovered() || nk_ctx.item_is_any_active();
-
-        /*
 
         ui.main_menu_bar(|| {
             ui.menu(im_str!("Fichier")).build(|| {
@@ -550,7 +495,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
         if let EditorMode::Select(entity, _) = self.mode.clone() {
             ui.window(im_str!("Entité {}", entity.id())).always_auto_resize(true).build(|| {
                 {
-                    let av_comps: Vec<(ComponentsWrapper, &ImStr)> = COMPONENTS_WRAPPERS.iter().filter(|c| c.0.has_comp(entity, self.level.get_world())).map(|c| (c.0.clone(), *c.1)).collect();
+                    let av_comps: Vec<(ComponentsWrapper, &'static ImStr)> = COMPONENTS_WRAPPERS.iter().filter(|c| c.0.has_comp(entity, self.level.get_world())).map(|c| (c.0.clone(), *c.1)).collect();
 
                     let mut pos = av_comps.iter().position(|c| c.0 == self.imgui_helper.select_entity_view_component_selected).map_or(-1, |pos| pos as i32);
 
@@ -577,7 +522,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                 }
 
                 ui.popup(im_str!("add_comp"), || {
-                    let missing_comps: Vec<(ComponentsWrapper, &ImStr)> = COMPONENTS_WRAPPERS.iter().filter(|c| !c.0.has_comp(entity, self.level.get_world())).map(|c| (c.0.clone(), *c.1)).collect();
+                    let missing_comps: Vec<(ComponentsWrapper, &'static ImStr)> = COMPONENTS_WRAPPERS.iter().filter(|c| !c.0.has_comp(entity, self.level.get_world())).map(|c| (c.0.clone(), *c.1)).collect();
 
                     let mut pos = missing_comps.iter().position(|c| c.0 == self.imgui_helper.select_entity_view_add_component_popup_selected).map_or(-1, |pos| pos as i32);
 
@@ -598,12 +543,11 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
             });
         }
 
-        self.is_ui_hover = {
-            let imgui_hovered = unsafe { imgui_sys::igIsAnyWindowHovered() || imgui_sys::igIsAnyItemHovered() || imgui_sys::igIsAnyItemActive() };
+        println!("{}", unsafe { imgui_sys::igIsAnyWindowHovered() });
 
-            imgui_hovered
-        };
-*/*/
+        self.is_ui_hover = unsafe { imgui_sys::igIsAnyWindowHovered() || imgui_sys::igIsAnyItemHovered() || imgui_sys::igIsAnyItemActive() };
+
+
         Ok(next_state)
     }
 

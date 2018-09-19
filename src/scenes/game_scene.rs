@@ -16,12 +16,17 @@ use utils::input_manager::RefInputManager;
 use utils::resources_manager::RefRM;
 use ecs::physics::PhysicsSystem;
 use wrapper::nuklear_wrapper::NkFontsHolder;
+use wrapper::imgui_wrapper::CenteredWindow;
 
 use imgui::Ui;
+use ggez::event::Keycode;
+use imgui::ImGuiCond;
 
 pub struct GameScene<'a, 'b> {
     level: Level<'a, 'b>,
-    camera: Camera
+    input_manager: RefInputManager,
+    camera: Camera,
+    show_exit_menu: bool
 }
 
 impl<'a, 'b> GameScene<'a, 'b> {
@@ -34,13 +39,18 @@ impl<'a, 'b> GameScene<'a, 'b> {
 
         let camera = Camera::new(screen_size,  1.);
 
-        GameScene { level, camera }
+        GameScene { level, input_manager, camera, show_exit_menu: false }
     }
 }
 
 impl<'a, 'b> Scene for GameScene<'a, 'b> {
     fn update(&mut self, ctx: &mut Context, dt: f32) -> SceneState {
         self.level.update(ctx, &self.camera, dt);
+
+        if let Some(true) = self.input_manager.lock().unwrap().is_key_pressed(&Keycode::Escape) {
+            self.show_exit_menu = true;
+        }
+
         Ok(NextState::Continue)
     }
 
@@ -50,7 +60,23 @@ impl<'a, 'b> Scene for GameScene<'a, 'b> {
     }
 
     fn draw_ui(&mut self, window_size: Vector2<u32>, ui: &Ui) -> SceneState {
-        Ok(NextState::Continue)
+        let mut next_state = NextState::Continue;
+
+        if self.show_exit_menu {
+            ui.window(im_str!("Menu")).title_bar(false).resizable(false).center(ui.frame_size(), (200., 100.), ImGuiCond::Always, ImGuiCond::Always).build(|| {
+                if ui.button(im_str!("Reprendre"), (-1., 25.)) {
+                    self.show_exit_menu = false;
+                }
+                if ui.button(im_str!("Recommencer"), (-1., 25.)) {
+
+                }
+                if ui.button(im_str!("Quitter"), (-1., 25.)) {
+                    next_state = NextState::Pop;
+                }
+            });
+        }
+
+        Ok(next_state)
     }
 
     fn background_color(&self) -> Color { self.level.background_color() }
