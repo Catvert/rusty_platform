@@ -2,10 +2,7 @@ use ggez::Context;
 use ggez::error::GameError;
 use ggez::graphics::Color;
 
-use nuklear::Context as NkCtx;
-
 use na::Vector2;
-use wrapper::nuklear_wrapper::NkFontsHolder;
 
 use imgui::Ui;
 

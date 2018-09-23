@@ -7,7 +7,6 @@ use specs::prelude::*;
 use specs::saveload::{U64MarkerAllocator, U64Marker, SerializeComponents, DeserializeComponents};
 use specs::error::NoError;
 
-use shred::DynamicSystemData;
 use ecs::components_prelude::*;
 
 #[derive(Debug)]

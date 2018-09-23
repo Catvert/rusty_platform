@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use specs::prelude::*;
 
 use ggez::event::Keycode;
@@ -41,7 +39,7 @@ impl<'a> System<'a> for InputSystem {
                         }
 
                         if !inserted {
-                            actions.insert(ent, ActionComponent { actions_remaining: vec![action.clone()] });
+                            actions.insert(ent, ActionComponent { actions_remaining: vec![action.clone()] }).unwrap();
                         }
                     }
                 }

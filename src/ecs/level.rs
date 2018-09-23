@@ -1,29 +1,26 @@
 use std::fs::File;
 
 use ggez::Context;
-use ggez::graphics::{self, DrawParam, BlendMode};
-use ggez::graphics::spritebatch::SpriteBatch;
-use ggez::event::Keycode;
+use ggez::graphics::{self, BlendMode};
 use ggez::graphics::Color;
 
-use na::{Point2, Vector2};
+use na::{Point2};
 
 use utils::resources_manager::RefRM;
 use utils::camera::Camera;
 use utils::math::Rect;
 
-use specs::{World, DispatcherBuilder, Dispatcher, Join, Builder, RunNow};
-use specs::saveload::{U64Marker, U64MarkerAllocator, MarkedBuilder};
+use specs::{World, DispatcherBuilder, Dispatcher, Join, RunNow};
+use specs::saveload::{U64Marker, U64MarkerAllocator};
 
 use ecs::serialization::{SerializeSystem, DeserializeSystem};
 use ecs::inputs::InputComponent;
-use ecs::physics::{PhysicsComponent, BodyType};
+use ecs::physics::{PhysicsComponent};
 use ecs::chunk::{ChunkComponent, ActiveChunkMarker, ActiveChunksRect};
 use ecs::render::SpriteComponent;
 use ecs::rect::RectComponent;
 use ecs::actions::*;
 use ecs::chunk::ChunkSystem;
-use utils::sprite::SpriteMode;
 
 pub enum Background {
     Texture(String, Color),
@@ -41,15 +38,15 @@ pub struct Level<'a, 'b> {
 }
 
 impl<'a, 'b> Level<'a, 'b> {
-    pub fn load<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>>(level_path: String, resources_manager: RefRM, mut build_dispatcher: F) -> Self {
-        let (mut world, dispatcher, chunk_sys) = Self::build_default_world(build_dispatcher);
+    pub fn load<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>>(level_path: String, resources_manager: RefRM, build_dispatcher: F) -> Self {
+        let (world, dispatcher, chunk_sys) = Self::build_default_world(build_dispatcher);
 
         DeserializeSystem { reader: File::open(&level_path).unwrap()  }.run_now(&world.res);
 
         Level { level_path, world, dispatcher, chunk_sys, resources_manager, background: Background::Color((100, 200, 0, 255).into()), blend_mode: None }
     }
 
-    pub fn new<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>, W: FnMut(&mut World) -> ()>(level_path: String, resources_manager: RefRM, mut build_dispatcher: F, mut populate_world: W) -> Self {
+    pub fn new<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>, W: FnMut(&mut World) -> ()>(level_path: String, resources_manager: RefRM, build_dispatcher: F, mut populate_world: W) -> Self {
         let (mut world, dispatcher, chunk_sys) = Self::build_default_world(build_dispatcher);
 
         populate_world(&mut world);
@@ -76,7 +73,7 @@ impl<'a, 'b> Level<'a, 'b> {
         world.add_resource(U64MarkerAllocator::new());
         world.add_resource(ActiveChunksRect::new(Rect::new(0., 0., 1000, 1000), 1.5));
 
-        let mut dispatcher_builder = DispatcherBuilder::new();
+        let dispatcher_builder = DispatcherBuilder::new();
 
         let mut dispatcher = build_dispatcher(dispatcher_builder).build();
 
@@ -108,16 +105,13 @@ impl<'a, 'b> Level<'a, 'b> {
         let x = camera.world_to_screen_coords(active_rect_chunk.pos);
         let size = camera.calculate_dest_scale(Point2::new(active_rect_chunk.size.x as f32, active_rect_chunk.size.y as f32));
 
-        graphics::set_color(ctx, (100, 0, 200, 255).into());
+        graphics::set_color(ctx, (100, 0, 200, 255).into()).unwrap();
 
-        graphics::rectangle(ctx, graphics::DrawMode::Line(1.), graphics::Rect::new(x.x as f32, x.y as f32, size.x, -size.y));
+        graphics::rectangle(ctx, graphics::DrawMode::Line(1.), graphics::Rect::new(x.x as f32, x.y as f32, size.x, -size.y)).unwrap();
 
-        graphics::set_color(ctx, (255, 255, 255, 255).into());
+        graphics::set_color(ctx, (255, 255, 255, 255).into()).unwrap();
 
         for (rect, mut spr, _) in (&rects, &mut sprites, &active_chunk).join() {
-            use std::sync::Arc;
-            use ggez::graphics::Image;
-
             spr.draw(ctx, &rect.get_rect(), camera, &self.resources_manager);
         }
 

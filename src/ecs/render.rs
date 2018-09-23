@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use ggez::graphics::Image;
 
 use specs::prelude::*;
@@ -6,7 +5,6 @@ use ggez::Context;
 use utils::sprite::Sprite;
 use utils::resources_manager::RefRM;
 
-use na::Vector2;
 use utils::math::Rect;
 use utils::camera::Camera;
 
@@ -25,6 +23,6 @@ impl SpriteComponent {
     }
 
     pub fn draw(&mut self, ctx: &mut Context, rect: &Rect, camera: &Camera, resources_manager: &RefRM) {
-        self.sprite.draw(ctx, rect, camera, resources_manager);
+        self.sprite.draw(ctx, rect, camera, resources_manager).unwrap();
     }
 }

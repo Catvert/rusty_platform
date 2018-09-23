@@ -124,8 +124,8 @@
         components: (Some(RectComponent(
             rect: Rect(
                 pos: [
-                    600,
-                    0,
+                    892,
+                    472.5,
                 ],
                 size: [
                     100,
@@ -2004,8 +2004,8 @@
         components: (Some(RectComponent(
             rect: Rect(
                 pos: [
-                    0,
-                    200,
+                    604.5,
+                    350,
                 ],
                 size: [
                     100,

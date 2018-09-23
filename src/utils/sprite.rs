@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use ggez::graphics::Image;
 use utils::resources_manager::RefRM;
 use ggez::Context;
@@ -10,6 +8,7 @@ use na::{Vector2, Point2};
 use utils::camera::Camera;
 use utils::math::Rect;
 use ggez::graphics::spritebatch::SpriteBatch;
+use ggez::error::GameResult;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum SpriteMode {
@@ -40,7 +39,7 @@ impl Sprite {
         }
     }
 
-    pub fn draw(&mut self, ctx: &mut Context, rect: &Rect, camera: &Camera, resources_manager: &RefRM) {
+    pub fn draw(&mut self, ctx: &mut Context, rect: &Rect, camera: &Camera, resources_manager: &RefRM) -> GameResult<()> {
         let image = self.get_or_load(ctx, resources_manager);
 
         match self.mode {
@@ -70,8 +69,10 @@ impl Sprite {
                     }
                 }
 
-                graphics::draw_ex(ctx, &batch, Default::default());
+                graphics::draw_ex(ctx, &batch, Default::default())?;
             }
         }
+
+        Ok(())
     }
 }

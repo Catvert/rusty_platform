@@ -152,7 +152,7 @@ impl ChunkSystem {
 
         for chunk in self.get_chunks_overlap_rect(active_rect.get_rect()).iter() {
             for ent in self.chunks.get(*chunk).unwrap().iter() {
-                active_storage.insert(*ent, ActiveChunkMarker);
+                active_storage.insert(*ent, ActiveChunkMarker).unwrap();
             }
         }
     }
@@ -166,7 +166,7 @@ impl ChunkSystem {
         chunk_comp.chunks.extend(chunks);
 
         if active_rect.get_rect().overlaps(rect) {
-            active_storage.insert(ent, ActiveChunkMarker);
+            active_storage.insert(ent, ActiveChunkMarker).unwrap();
         }
     }
 
@@ -207,7 +207,7 @@ impl<'a> System<'a> for ChunkSystem {
         for (ent, rect, _) in (&*entities, &rect, self.dirty_insert.clone()).join() {
             let mut comp = ChunkComponent::default();
             self.insert_entity_chunks(ent, &mut comp, rect.get_rect(), &mut active_chunk, &active_rect);
-            chunk.insert(ent, comp);
+            chunk.insert(ent, comp).unwrap();
         }
 
         for (ent, chunk, rect, _) in (&*entities, &mut chunk, &rect, self.dirty_modify.clone()).join() {

@@ -24,9 +24,6 @@ extern crate shred;
 #[macro_use]
 extern crate lazy_static;
 
-#[macro_use]
-extern crate nuklear;
-extern crate nuklear_backend_gfx;
 extern crate core;
 
 #[macro_use]

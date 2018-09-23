@@ -4,19 +4,18 @@ use std::io::Read;
 use ggez::Context;
 use ggez::event::{MouseButton, Keycode};
 
-use utils::constants;
-
-use imgui::{ImGui, Window, ImGuiCond, ImVec4, FrameSize, Ui, ImFontConfig, FontGlyphRange, ImFont};
-use imgui_sys::{igStyleColorsDark, igPushFont, igPopFont};
+use imgui::{ImGui, Window, ImGuiCond, ImVec4, FrameSize, Ui, ImFontConfig, FontGlyphRange};
+use imgui_sys::{igStyleColorsDark};
 use imgui_gfx_renderer::{Renderer, Shaders};
 
 use gfx_device_gl;
-use gfx_core::{self, Factory};
+use gfx_core::{Factory};
 use gfx_core::handle::RenderTargetView;
 use gfx_core::memory::Typed;
 use gfx::{CommandBuffer, Encoder};
 use ggez::event::Event;
 use sdl2::event::WindowEvent;
+use std::time::Instant;
 
 const IMGUI_TAB: u8 = 0;
 const IMGUI_LEFT_ARROW: u8 = 1;
@@ -40,15 +39,20 @@ const IMGUI_Z: u8 = 18;
 const IMGUI_UNDEFINED: u8 = 19;
 
 pub trait CenteredWindow {
-    fn center(mut self, frame_size: FrameSize, size: (f32, f32), size_cond: ImGuiCond, pos_cond: ImGuiCond) -> Self where Self: Sized {
-        self // fix pattern warning
-    }
+    fn center(self, frame_size: FrameSize, size: (f32, f32), size_cond: ImGuiCond, pos_cond: ImGuiCond) -> Self where Self: Sized;
 }
 
 impl<'ui, 'p> CenteredWindow for Window<'ui, 'p> {
-    fn center(mut self, frame_size: FrameSize, size: (f32, f32), size_cond: ImGuiCond, pos_cond: ImGuiCond) -> Self {
+    fn center(self, frame_size: FrameSize, size: (f32, f32), size_cond: ImGuiCond, pos_cond: ImGuiCond) -> Self {
         self.size(size, size_cond).position((frame_size.logical_size.0 as f32 / 2. - size.0 / 2., frame_size.logical_size.1 as f32 / 2. - size.1 / 2.), pos_cond)
     }
+}
+
+#[derive(Copy, Clone, PartialEq, Debug, Default)]
+struct MouseState {
+    pos: (i32, i32),
+    pressed: (bool, bool, bool),
+    wheel: f32,
 }
 
 pub enum ImGuiFonts {
@@ -56,20 +60,11 @@ pub enum ImGuiFonts {
     Big
 }
 
-pub enum ImGuiParseKeycodeModifier {
-    Ctrl, Alt, Shift
-}
-
-pub enum ImGuiParseKeycode {
-    Modifier(ImGuiParseKeycodeModifier),
-    Char(char, Option<u8>),
-    ImGui(u8),
-    None
-}
-
 pub struct ImGuiWrapper {
     imgui: ImGui,
     renderer: Renderer<gfx_device_gl::Resources>,
+    last_frame: Instant,
+    mouse_state: MouseState
 }
 
 impl ImGuiWrapper {
@@ -126,11 +121,11 @@ impl ImGuiWrapper {
         Self::configure_keys(&mut imgui);
 
         let renderer = Renderer::init(&mut imgui, &mut *ctx.gfx_context.factory, shaders, RenderTargetView::new(ctx.gfx_context.screen_render_target.clone())).unwrap();
-        Self { imgui, renderer }
+        Self { imgui, renderer, last_frame: Instant::now(), mouse_state: MouseState::default() }
     }
 
     pub fn process_event(&mut self, event: &Event, ctx: &Context) {
-        let mut update_imgui_key = |imgui: &mut ImGui, key: Keycode, pressed: bool| {
+        let update_imgui_key = |imgui: &mut ImGui, key: Keycode, pressed: bool| {
             let imgui_key = match key {
                 Keycode::Tab => IMGUI_TAB,
                 Keycode::Left => IMGUI_LEFT_ARROW,
@@ -188,26 +183,39 @@ impl ImGuiWrapper {
                 }
             },
             Event::MouseButtonDown {  mouse_btn, .. } => {
-                self.imgui.set_mouse_down([
-                    mouse_btn == MouseButton::Left,
-                    mouse_btn == MouseButton::Right,
-                    mouse_btn == MouseButton::Middle,
-                    false,
-                    false
-                ]);
+                match mouse_btn {
+                    MouseButton::Left => {
+                        self.mouse_state.pressed.0 = true;
+                    },
+                    MouseButton::Right => {
+                        self.mouse_state.pressed.1 = true;
+                    },
+                    MouseButton::Middle => {
+                        self.mouse_state.pressed.2 = true;
+                    },
+                    _ => {}
+                }
             },
             Event::MouseButtonUp { mouse_btn, .. } => {
-                self.imgui.set_mouse_down([
-                    mouse_btn != MouseButton::Left,
-                    mouse_btn != MouseButton::Right,
-                    mouse_btn != MouseButton::Middle,
-                    false,
-                    false
-                ]);
+                match mouse_btn {
+                    MouseButton::Left => {
+                        self.mouse_state.pressed.0 = false;
+                    },
+                    MouseButton::Right => {
+                        self.mouse_state.pressed.1 = false;
+                    },
+                    MouseButton::Middle => {
+                        self.mouse_state.pressed.2 = false;
+                    },
+                    _ => {}
+                }
             },
             Event::MouseMotion { x, y, .. } => {
-                self.imgui.set_mouse_pos(x as f32, y as f32);
+                self.mouse_state.pos = (x, y);
             },
+            Event::MouseWheel { y, .. } => {
+                self.mouse_state.wheel = y as f32;
+            }
             Event::Window { win_event: WindowEvent::Resized(w, h), .. } => {
                 self.renderer.update_render_target(RenderTargetView::new(ctx.gfx_context.screen_render_target.clone()));
             }
@@ -239,7 +247,7 @@ impl ImGuiWrapper {
         imgui.set_imgui_key(ImGuiKey::Z, IMGUI_Z);
     }
 
-    pub fn render_ui<F: FnMut(&Ui) -> ()>(&mut self, ctx: &mut Context, mut run_ui: F) {
+    pub fn render_ui<F: FnMut(&Ui) -> ()>(&mut self, ctx: &mut Context, run_ui: F) {
         let logical_size = ctx.gfx_context.window.drawable_size();
         let factory = &mut *ctx.gfx_context.factory;
         let encoder = &mut ctx.gfx_context.encoder;
@@ -248,15 +256,35 @@ impl ImGuiWrapper {
     }
 
     pub fn render_ui_ex<R: FnMut(&Ui) -> (), F: Factory<gfx_device_gl::Resources>, C: CommandBuffer<gfx_device_gl::Resources>>(&mut self, logical_size: (u32, u32), factory: &mut F, encoder: &mut Encoder<gfx_device_gl::Resources, C>,  mut run_ui: R) {
+        self.update_mouse();
+
         let frame_size = FrameSize {
             logical_size: (logical_size.0 as f64, logical_size.1 as f64),
             hidpi_factor: 1.0,
         };
 
-        let ui = self.imgui.frame(frame_size, 1.0 / (constants::DESIRED_FPS as f32));
+        let now = Instant::now();
+        let delta = now - self.last_frame;
+        let delta_s = delta.as_secs() as f32 + delta.subsec_nanos() as f32 / 1_000_000_000.0;
+        self.last_frame = now;
+
+        let ui = self.imgui.frame(frame_size, delta_s);
 
         run_ui(&ui);
 
         self.renderer.render(ui, &mut *factory, encoder).expect("Un problème est survenu lors de l'affichage d'ImGui !");
+    }
+
+    fn update_mouse(&mut self) {
+        self.imgui.set_mouse_pos(self.mouse_state.pos.0 as f32, self.mouse_state.pos.1 as f32);
+        self.imgui.set_mouse_down([
+            self.mouse_state.pressed.0,
+            self.mouse_state.pressed.1,
+            self.mouse_state.pressed.2,
+            false,
+            false,
+        ]);
+        self.imgui.set_mouse_wheel(self.mouse_state.wheel);
+        self.mouse_state.wheel = 0.0;
     }
 }

@@ -1,15 +1,7 @@
-use std::sync::Arc;
-
 use ggez::{Context};
 use ggez::graphics::{self, Point2, Image, DrawParam, Color};
 
 use na::Vector2;
-
-use nuklear::Context as NkCtx;
-use nuklear::Rect;
-use nuklear::nuklear_sys::nk_window_flags_NK_WINDOW_DYNAMIC;
-use nuklear::{PanelFlags, ShowState};
-use nuklear::StyleItem;
 
 use scenes::{Scene, SceneState, NextState};
 use scenes::game_scene::GameScene;
@@ -17,9 +9,6 @@ use scenes::editor_scene::EditorScene;
 
 use utils::resources_manager::RefRM;
 use utils::input_manager::RefInputManager;
-use nuklear::Flags;
-use wrapper::nuklear_wrapper::NkFontsHolder;
-use wrapper::nuklear_wrapper::NkFonts;
 use imgui::Ui;
 use wrapper::imgui_wrapper::CenteredWindow;
 use imgui::ImGuiCol;
@@ -70,7 +59,6 @@ impl Scene for MainScene {
     fn draw_ui(&mut self, window_size: Vector2<u32>, ui: &Ui) -> SceneState {
         let mut result = NextState::Continue;
 
-        let mut result = NextState::Continue;
         ui.with_color_vars(&[(ImGuiCol::WindowBg, (0., 0., 0., 0.))], || {
             ui.window(im_str!("Menu principal")).title_bar(false).movable(false).resizable(false).center(ui.frame_size(), (150., 200.), ImGuiCond::Always, ImGuiCond::Always).build(|| {
                 if ui.button(im_str!("Jouer"), (-1., 0.)) {

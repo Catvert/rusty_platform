@@ -28,9 +28,6 @@ ndarray = "0.11.2"
 
 lazy_static = "1.1.0"
 
-nuklear-backend-gfx = "0.7.1"
-nuklear-rust = "0.5.1"
-
-imgui = { git = "https://github.com/Gekkio/imgui-rs.git" }
-imgui-gfx-renderer = { git = "https://github.com/Gekkio/imgui-rs.git" }
-imgui-sys = { git = "https://github.com/Gekkio/imgui-rs.git" }
+imgui = { version = "0.0.20" }
+imgui-gfx-renderer = { version = "0.0.20" }
+imgui-sys = { version = "0.0.20" }

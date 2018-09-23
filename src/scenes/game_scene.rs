@@ -5,8 +5,6 @@ use na::Vector2;
 
 use scenes::{Scene, SceneState, NextState};
 
-use nuklear::Context as NkCtx;
-
 use ecs::level::Level;
 use ecs::inputs::InputSystem;
 use ecs::actions::ActionSystem;
@@ -15,7 +13,6 @@ use utils::camera::Camera;
 use utils::input_manager::RefInputManager;
 use utils::resources_manager::RefRM;
 use ecs::physics::PhysicsSystem;
-use wrapper::nuklear_wrapper::NkFontsHolder;
 use wrapper::imgui_wrapper::CenteredWindow;
 
 use imgui::Ui;

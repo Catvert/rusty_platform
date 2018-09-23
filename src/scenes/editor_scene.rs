@@ -1,26 +1,22 @@
-use specs::{Entity, World, Join, RunNow, Builder, saveload::MarkedBuilder};
+use specs::{Entity, World, Join, Builder, saveload::MarkedBuilder};
 
 use ggez::Context;
 use ggez::graphics::{self, Color};
 use ggez::event::{Keycode, MouseButton};
 
-use na::{self, Point2, Vector2};
+use na::{Point2, Vector2};
 
-use nuklear::TextAlignment;
 
 use utils::resources_manager::RefRM;
 use utils::input_manager::{InputManager, RefInputManager};
 use utils::camera::Camera;
 use utils::math::Rect;
 
-use ecs::physics::PhysicsSystem;
 use ecs::rect::RectComponent;
-use ecs::chunk::{ChunkSystem, ActiveChunkMarker};
+use ecs::chunk::{ActiveChunkMarker};
 use ecs::inputs::{InputSystem, InputComponent};
 use ecs::actions::ActionSystem;
 use ecs::level::Level;
-
-use nuklear::Context as NkCtx;
 
 use scenes::{Scene, SceneState, NextState};
 use ecs::render::SpriteComponent;
@@ -33,25 +29,12 @@ use utils::sprite::Sprite;
 
 use std::collections::HashMap;
 
-use specs::ReadStorage;
-
 use specs::LazyUpdate;
 
-use ecs::components_prelude::*;
-use specs::Component;
-use std::any::Any;
-use std::cell::Cell;
-use nuklear::Flags;
-use nuklear::PanelFlags;
-use nuklear::Rect as NkRect;
-use nuklear::Vec2;
-use nuklear::PopupType;
-use wrapper::nuklear_wrapper::NkFontsHolder;
 use ecs::imgui_editor::ImGuiEditor;
 use imgui_sys;
 use imgui::Ui;
 use imgui::ImStr;
-use imgui::ImString;
 
 lazy_static! {
     static ref COMPONENTS_WRAPPERS: HashMap<ComponentsWrapper, &'static ImStr> = {
@@ -108,15 +91,17 @@ macro_rules! impl_components_wrapper {
 
 impl_components_wrapper!([ComponentsWrapper::Rect => RectComponent, ComponentsWrapper::Input => InputComponent]);
 
-struct NkMemoryHelper {
+struct ImGuiMemoryHelper {
+    pub select_entity_view_show_window: bool,
     pub select_entity_view_component_selected: ComponentsWrapper,
     pub select_entity_view_add_component_popup_selected: ComponentsWrapper,
     pub select_entity_view_add_component_popup_show: bool,
 }
 
-impl NkMemoryHelper {
+impl ImGuiMemoryHelper {
     fn new() -> Self {
-        NkMemoryHelper {
+        ImGuiMemoryHelper {
+            select_entity_view_show_window: false,
             select_entity_view_component_selected: ComponentsWrapper::Rect,
             select_entity_view_add_component_popup_selected: ComponentsWrapper::Rect,
             select_entity_view_add_component_popup_show: false,
@@ -138,13 +123,13 @@ pub struct EditorScene<'a, 'b> {
     resources_manager: RefRM,
     camera: Camera,
     mode: EditorMode,
-    imgui_helper: NkMemoryHelper,
+    imgui_helper: ImGuiMemoryHelper,
     is_ui_hover: bool,
 }
 
 impl<'a, 'b> EditorScene<'a, 'b> {
     pub fn new(screen_size: Vector2<u32>, resources_manager: RefRM, input_manager: RefInputManager, level_path: String) -> Self {
-        let mut level = Level::new(level_path, resources_manager.clone(), |builder| {
+        let level = Level::new(level_path, resources_manager.clone(), |builder| {
             builder
                 .with(InputSystem { input_manager: input_manager.clone() }, "input_manager", &[])
                 .with(ActionSystem, "action_system", &["input_manager"])
@@ -160,7 +145,7 @@ impl<'a, 'b> EditorScene<'a, 'b> {
 
         let camera = Camera::new(screen_size, 1.);
 
-        EditorScene { level, input_manager, resources_manager, camera, mode: EditorMode::Default, imgui_helper: NkMemoryHelper::new(), is_ui_hover: false }
+        EditorScene { level, input_manager, resources_manager, camera, mode: EditorMode::Default, imgui_helper: ImGuiMemoryHelper::new(), is_ui_hover: false }
     }
 
     fn create_entity(world: &mut World, pos: Point2<f32>, size: Vector2<u32>, mode: SpriteMode, add_input: bool) {
@@ -349,13 +334,29 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                     }
                     EditorMode::Copy(entity, other_entities) => {
                         if *jp {
-                            let rect_storage = self.level.get_world().read_storage::<RectComponent>();
-                            let select_rect = rect_storage.get(entity).map_or(Rect::new(0., 0., 0, 0), |rect| rect.get_rect().clone());
+                            let (select_rect, other_ent_pos) = {
+                                let rect_storage = self.level.get_world().read_storage::<RectComponent>();
+                                let select_rect = rect_storage.get(entity).map_or(Rect::new(0., 0., 0, 0), |rect| rect.get_rect().clone());
+                                let mut other_ent_pos = vec![];
 
-                            // clone select entity
-                            //  Self::clone_entity(self.level.get_world_mut(), entity, Point2::new(mouse_in_world.x - select_rect.size.x as f32 / 2., mouse_in_world.y - select_rect.size.y as f32 / 2.));
+                                if let Some(other_entities) = other_entities {
+                                    for other_entity in other_entities.iter() {
+                                        other_ent_pos.push((other_entity.clone(), rect_storage.get(*other_entity).map_or(Point2::new(0., 0.), |rect| rect.get_rect().pos.clone())));
+                                    }
+                                }
 
-                            for other_entity in other_entities.iter() {}
+                                (select_rect, other_ent_pos)
+                            };
+
+                            let select_rect_placed = Rect::from(Point2::new(mouse_in_world.x - select_rect.size.x as f32 / 2., mouse_in_world.y - select_rect.size.y as f32 / 2.), select_rect.size);
+                            Self::clone_entity(self.level.get_world_mut(), entity, Point2::new(select_rect_placed.pos.x, select_rect_placed.pos.y));
+
+                            for (other_ent, pos) in other_ent_pos.iter() {
+                                let delta_x = select_rect.pos.x - pos.x;
+                                let delta_y = select_rect.pos.y - pos.y;
+
+                                Self::clone_entity(self.level.get_world_mut(), *other_ent, Point2::new(select_rect_placed.pos.x - delta_x, select_rect_placed.pos.y - delta_y));
+                            }
                         }
 
                         None
@@ -386,7 +387,13 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
             if let Some(true) = input_manager.is_mouse_pressed(&MouseButton::Right) {
                 match self.mode {
                     EditorMode::Default => {}
-                    EditorMode::Select(_, _) => {}
+                    EditorMode::Select(select_ent, _) => {
+                        if let Some(ent) = self.get_entity_under_mouse(&input_manager) {
+                            if select_ent == ent {
+                                self.imgui_helper.select_entity_view_show_window = true;
+                            }
+                        }
+                    }
                     EditorMode::Copy(_, _) => {
                         self.mode = EditorMode::Default;
                     }
@@ -394,31 +401,33 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                 }
             }
 
-            if let Some(true) = input_manager.is_key_pressed(&Keycode::Backspace) {
-                if let EditorMode::Select(entity, other_entities) = self.mode.clone() {
-                    macro_rules! delete_ent {
-                        ($ent:expr) => {
-                            self.level.get_world_mut().delete_entity($ent)
+            if !self.is_ui_hover {
+                if let Some(true) = input_manager.is_key_pressed(&Keycode::Backspace) {
+                    if let EditorMode::Select(entity, other_entities) = self.mode.clone() {
+                        macro_rules! delete_ent {
+                            ($ent:expr) => {
+                                self.level.get_world_mut().delete_entity($ent).expect(&format!("Impossible de supprimer l'entité {:?}", $ent));
+                            }
+                        }
+
+                        delete_ent!(entity);
+
+                        if let Some(other_entities) = other_entities {
+                            for other_ent in other_entities.iter() {
+                                delete_ent!(*other_ent);
+                            }
                         }
                     }
 
-                    delete_ent!(entity);
-
-                    if let Some(other_entities) = other_entities {
-                        for other_ent in other_entities.iter() {
-                            delete_ent!(*other_ent);
-                        }
-                    }
+                    self.mode = EditorMode::Default;
                 }
 
-                self.mode = EditorMode::Default;
-            }
-
-            if let Some(true) = input_manager.is_key_pressed(&Keycode::C) {
-                if let Some(mode) = if let EditorMode::Select(ref entity, ref other_entities) = self.mode {
-                    Some(EditorMode::Copy(entity.clone(), other_entities.clone()))
-                } else { None } {
-                    self.mode = mode;
+                if let Some(true) = input_manager.is_key_pressed(&Keycode::C) {
+                    if let Some(mode) = if let EditorMode::Select(ref entity, ref other_entities) = self.mode {
+                        Some(EditorMode::Copy(entity.clone(), other_entities.clone()))
+                    } else { None } {
+                        self.mode = mode;
+                    }
                 }
             }
         }
@@ -441,22 +450,27 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                 let p1 = Point2::new(p1.x as i32, p1.y as i32);
                 let p2 = Point2::new(p2.x as i32, p2.y as i32);
 
-                graphics::set_color(ctx, Color::from_rgba(100, 0, 0, 100));
+                graphics::set_color(ctx, Color::from_rgba(100, 0, 0, 100))?;
 
-                graphics::rectangle(ctx, graphics::DrawMode::Fill, self.camera.world_rect_to_screen(&Rect::from_points(&p1, &p2)).to_ggez_rect());
+                graphics::rectangle(ctx, graphics::DrawMode::Fill, self.camera.world_rect_to_screen(&Rect::from_points(&p1, &p2)).to_ggez_rect())?;
 
-                graphics::set_color(ctx, Color::from_rgba(255, 255, 255, 255));
+                graphics::set_color(ctx, Color::from_rgba(255, 255, 255, 255))?;
             }
             EditorMode::Select(entity, other_entities) => {
                 macro_rules! draw_ent_rect {
                     ($ent:expr) => {
                         if let Some(rect) = self.level.get_world().read_storage::<RectComponent>().get($ent) {
-                            graphics::rectangle(ctx, graphics::DrawMode::Line(2.0), self.camera.world_rect_to_screen(rect.get_rect()).to_ggez_rect());
+                            graphics::rectangle(ctx, graphics::DrawMode::Line(2.0), self.camera.world_rect_to_screen(rect.get_rect()).to_ggez_rect())?;
                         }
                     };
                 }
 
+                let old_color = graphics::get_color(ctx);
+                graphics::set_color(ctx, (255, 180, 40).into())?;
+
                 draw_ent_rect!(entity);
+
+                graphics::set_color(ctx, old_color)?;
 
                 if let Some(other_entities) = other_entities {
                     for other_ent in other_entities.iter() {
@@ -465,12 +479,36 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                 }
             }
             EditorMode::Copy(entity, other_entities) => {
-                /*if let Some(rect) = self.level.get_world().read_storage::<RectComponent>().get(ent) {
-                    if let Some(spr) = self.level.get_world().write_storage::<SpriteComponent>().get_mut(ent) {
-                        let size = rect.get_rect().size;
-                        spr.draw(ctx, &Rect::from(Point2::new(mouse_in_world.x - size.x as f32 / 2., mouse_in_world.y - size.y as f32 / 2.), size), &self.camera, &self.resources_manager)
+                let default_color = graphics::get_color(ctx);
+                graphics::set_color(ctx, [default_color.r, default_color.g, default_color.b, 0.5].into())?;
+
+                let rect_storage = self.level.get_world().read_storage::<RectComponent>();
+                let mut sprite_storage = self.level.get_world().write_storage::<SpriteComponent>();
+                if let Some(select_rect) = rect_storage.get(entity) {
+                    let size = select_rect.get_rect().size;
+                    let select_rect_placed = Rect::from(Point2::new(mouse_in_world.x - size.x as f32 / 2., mouse_in_world.y - size.y as f32 / 2.), size);
+
+                    if let Some(spr) = sprite_storage.get_mut(entity) {
+                        spr.draw(ctx, &select_rect_placed, &self.camera, &self.resources_manager);
                     }
-                }*/
+
+                    if let Some(other_entities) = other_entities {
+                        for other_ent in other_entities.iter() {
+                            if let Some(other_rect) = rect_storage.get(*other_ent) {
+                                if let Some(spr) = sprite_storage.get_mut(*other_ent) {
+                                    let delta_x = select_rect.get_rect().pos.x - other_rect.get_rect().pos.x;
+                                    let delta_y = select_rect.get_rect().pos.y - other_rect.get_rect().pos.y;
+
+                                    let rect = Rect::from(Point2::new(select_rect_placed.pos.x - delta_x, select_rect_placed.pos.y - delta_y), other_rect.get_rect().size);
+
+                                    spr.draw(ctx, &rect, &self.camera, &self.resources_manager);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                graphics::set_color(ctx, default_color)?;
             }
         }
 
@@ -492,61 +530,63 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
             ui.text(&format!("{:?}", self.mode));
         });
 
-        if let EditorMode::Select(entity, _) = self.mode.clone() {
-            ui.window(im_str!("Entité {}", entity.id())).always_auto_resize(true).build(|| {
-                {
-                    let av_comps: Vec<(ComponentsWrapper, &'static ImStr)> = COMPONENTS_WRAPPERS.iter().filter(|c| c.0.has_comp(entity, self.level.get_world())).map(|c| (c.0.clone(), *c.1)).collect();
+        if self.imgui_helper.select_entity_view_show_window {
+            if let EditorMode::Select(entity, _) = self.mode.clone() {
+                let mut opened = self.imgui_helper.select_entity_view_show_window;
+                ui.window(im_str!("Entité {}", entity.id())).opened(&mut opened).always_auto_resize(true).build(|| {
+                    {
+                        let av_comps: Vec<(ComponentsWrapper, &'static ImStr)> = COMPONENTS_WRAPPERS.iter().filter(|c| c.0.has_comp(entity, self.level.get_world())).map(|c| (c.0.clone(), *c.1)).collect();
 
-                    let mut pos = av_comps.iter().position(|c| c.0 == self.imgui_helper.select_entity_view_component_selected).map_or(-1, |pos| pos as i32);
+                        let mut pos = av_comps.iter().position(|c| c.0 == self.imgui_helper.select_entity_view_component_selected).map_or(-1, |pos| pos as i32);
 
-                    let names: Vec<&ImStr> = av_comps.iter().map(|c| c.1).collect();
+                        let names: Vec<&ImStr> = av_comps.iter().map(|c| c.1).collect();
 
-                    if ui.combo(im_str!("component"), &mut pos, &names[..], 10) {
-                        let comp = av_comps.iter().nth(pos as usize).unwrap().0.clone();
-                        self.imgui_helper.select_entity_view_component_selected = comp;
-                    }
+                        if ui.combo(im_str!("component"), &mut pos, &names[..], 10) {
+                            let comp = av_comps.iter().nth(pos as usize).unwrap().0.clone();
+                            self.imgui_helper.select_entity_view_component_selected = comp;
+                        }
 
-                    ui.same_line(0.);
+                        ui.same_line(0.);
 
-                    if ui.button(im_str!("Supprimer"), (100., 0.)) {
-                        if let Some(comp) = av_comps.iter().nth(pos as usize) {
-                            comp.0.delete(entity, self.level.get_world());
+                        if ui.button(im_str!("Supprimer"), (100., 0.)) {
+                            if let Some(comp) = av_comps.iter().nth(pos as usize) {
+                                comp.0.delete(entity, self.level.get_world());
+                            }
                         }
                     }
-                }
 
-                self.imgui_helper.select_entity_view_component_selected.draw_ui(entity, self.level.get_world_mut(), ui);
+                    self.imgui_helper.select_entity_view_component_selected.draw_ui(entity, self.level.get_world_mut(), ui);
 
-                if ui.button(im_str!("Ajouter un composant"), (-1., 0.)) {
-                    ui.open_popup(im_str!("add_comp"));
-                }
-
-                ui.popup(im_str!("add_comp"), || {
-                    let missing_comps: Vec<(ComponentsWrapper, &'static ImStr)> = COMPONENTS_WRAPPERS.iter().filter(|c| !c.0.has_comp(entity, self.level.get_world())).map(|c| (c.0.clone(), *c.1)).collect();
-
-                    let mut pos = missing_comps.iter().position(|c| c.0 == self.imgui_helper.select_entity_view_add_component_popup_selected).map_or(-1, |pos| pos as i32);
-
-                    let names: Vec<&ImStr> = missing_comps.iter().map(|c| c.1).collect();
-
-                    if ui.combo(im_str!("component"), &mut pos, &names[..], 10) {
-                        let comp = missing_comps.iter().nth(pos as usize).unwrap().0.clone();
-                        self.imgui_helper.select_entity_view_add_component_popup_selected = comp;
+                    if ui.button(im_str!("Ajouter un composant"), (-1., 0.)) {
+                        ui.open_popup(im_str!("add_comp"));
                     }
 
-                    if ui.button(im_str!("Ajouter"), (100., 0.)) {
-                        if let Some(comp) = missing_comps.iter().nth(pos as usize) {
-                            comp.0.insert(entity, self.level.get_world());
-                            ui.close_current_popup();
+                    ui.popup(im_str!("add_comp"), || {
+                        let missing_comps: Vec<(ComponentsWrapper, &'static ImStr)> = COMPONENTS_WRAPPERS.iter().filter(|c| !c.0.has_comp(entity, self.level.get_world())).map(|c| (c.0.clone(), *c.1)).collect();
+
+                        let mut pos = missing_comps.iter().position(|c| c.0 == self.imgui_helper.select_entity_view_add_component_popup_selected).map_or(-1, |pos| pos as i32);
+
+                        let names: Vec<&ImStr> = missing_comps.iter().map(|c| c.1).collect();
+
+                        if ui.combo(im_str!("component"), &mut pos, &names[..], 10) {
+                            let comp = missing_comps.iter().nth(pos as usize).unwrap().0.clone();
+                            self.imgui_helper.select_entity_view_add_component_popup_selected = comp;
                         }
-                    }
-                })
-            });
+
+                        if ui.button(im_str!("Ajouter"), (100., 0.)) {
+                            if let Some(comp) = missing_comps.iter().nth(pos as usize) {
+                                comp.0.insert(entity, self.level.get_world());
+                                ui.close_current_popup();
+                            }
+                        }
+                    })
+                });
+
+                self.imgui_helper.select_entity_view_show_window = opened;
+            }
         }
 
-        println!("{}", unsafe { imgui_sys::igIsAnyWindowHovered() });
-
         self.is_ui_hover = unsafe { imgui_sys::igIsAnyWindowHovered() || imgui_sys::igIsAnyItemHovered() || imgui_sys::igIsAnyItemActive() };
-
 
         Ok(next_state)
     }

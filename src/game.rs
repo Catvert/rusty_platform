@@ -7,9 +7,6 @@ use ggez::conf::{WindowSetup, NumSamples, WindowMode, FullscreenType};
 use ggez::graphics;
 use ggez::timer;
 
-use gfx_core::handle::RenderTargetView;
-use gfx_core::memory::Typed;
-
 use sdl2::event::Event::*;
 use sdl2::event::WindowEvent;
 
@@ -26,11 +23,10 @@ use utils::constants;
 use na::Point2;
 use na::Vector2;
 
-use wrapper::nuklear_wrapper::NuklearWrapper;
 use scenes::Scene;
-use ggez::graphics::Image;
 use wrapper::imgui_wrapper::ImGuiWrapper;
 
+use sdl2::EventPump;
 
 const GAME_CONFIG_PATH: &'static str = "resources/config.ron";
 
@@ -93,7 +89,7 @@ impl Game {
         let GameConfig { window_size: (width, height), fullscreen_type, borderless, vsync } = GameConfig::load();
 
         let window_setup = WindowSetup {
-            title: "Platform Finisher".to_string(),
+            title: "Rusty-Platform".to_string(),
             icon: "/icon.png".to_string(),
             resizable: true,
             allow_highdpi: false,
@@ -149,82 +145,89 @@ impl Game {
         }
     }
 
+    fn process_events(&mut self, event_pump: &mut EventPump) {
+        let mut input_manager = self.input_manager.lock().unwrap();
+
+        for event in event_pump.poll_iter() {
+            self.context.process_event(&event);
+            self.imgui_wrapper.process_event(&event, &self.context);
+
+            match event {
+                Quit { .. } => {
+                    self.exit = true;
+                }
+                KeyDown {
+                    keycode,
+                    keymod,
+                    repeat,
+                    ..
+                } => {
+                    if let Some(key) = keycode {
+                        input_manager.update_key(key, true);
+                    }
+                }
+                KeyUp {
+                    keycode,
+                    keymod,
+                    repeat,
+                    ..
+                } => {
+                    if let Some(key) = keycode {
+                        input_manager.update_key(key, false);
+                    }
+                }
+                MouseButtonDown {
+                    mouse_btn, x, y, ..
+                } => {
+                    input_manager.update_mouse(mouse_btn, true);
+                },
+                MouseButtonUp {
+                    mouse_btn, x, y, ..
+                } => {
+                    input_manager.update_mouse(mouse_btn, false);
+                },
+                MouseMotion {
+                    mousestate,
+                    x,
+                    y,
+                    xrel,
+                    yrel,
+                    ..
+                } => {
+                    input_manager.update_mouse_pos(Point2::new(x, y));
+                },
+                MouseWheel { x, y, .. } => {},
+                ControllerButtonDown { button, which, .. } => {}
+                ControllerButtonUp { button, which, .. } => {}
+                ControllerAxisMotion {
+                    axis, value, which, ..
+                } => {},
+                Window {
+                    win_event: WindowEvent::FocusGained,
+                    ..
+                } => {},
+                Window {
+                    win_event: WindowEvent::FocusLost,
+                    ..
+                } => {},
+                Window {
+                    win_event: WindowEvent::Resized(w, h),
+                    ..
+                } => {
+                    self.scenes.front_mut().unwrap().resize_event(&mut self.context, Vector2::new(w as u32, h as u32));
+                },
+                _ => {}
+            }
+        }
+    }
+
     pub fn run(&mut self) {
         let mut event_pump = self.context.sdl_context.event_pump().expect("Impossible d'obtenir le gestionnaire d'événements !");
 
         while !self.exit {
             self.context.timer_context.tick();
 
-            for event in event_pump.poll_iter() {
-                self.context.process_event(&event);
-                self.imgui_wrapper.process_event(&event, &self.context);
-                match event {
-                    Quit { .. } => {
-                        self.exit = true;
-                    }
-                    KeyDown {
-                        keycode,
-                        keymod,
-                        repeat,
-                        ..
-                    } => {
-                        if let Some(key) = keycode {
-                            self.input_manager.lock().unwrap().update_key(key, true);
-                        }
-                    }
-                    KeyUp {
-                        keycode,
-                        keymod,
-                        repeat,
-                        ..
-                    } => {
-                        if let Some(key) = keycode {
-                            self.input_manager.lock().unwrap().update_key(key, false);
-                        }
-                    }
-                    MouseButtonDown {
-                        mouse_btn, x, y, ..
-                    } => {
-                        self.input_manager.lock().unwrap().update_mouse(mouse_btn, true);
-                    },
-                    MouseButtonUp {
-                        mouse_btn, x, y, ..
-                    } => {
-                        self.input_manager.lock().unwrap().update_mouse(mouse_btn, false);
-                    },
-                    MouseMotion {
-                        mousestate,
-                        x,
-                        y,
-                        xrel,
-                        yrel,
-                        ..
-                    } => {
-                        self.input_manager.lock().unwrap().update_mouse_pos(Point2::new(x, y));
-                    },
-                    MouseWheel { x, y, .. } => {},
-                    ControllerButtonDown { button, which, .. } => {}
-                    ControllerButtonUp { button, which, .. } => {}
-                    ControllerAxisMotion {
-                        axis, value, which, ..
-                    } => {},
-                    Window {
-                        win_event: WindowEvent::FocusGained,
-                        ..
-                    } => {},
-                    Window {
-                        win_event: WindowEvent::FocusLost,
-                        ..
-                    } => {},
-                    Window {
-                        win_event: WindowEvent::Resized(w, h),
-                        ..
-                    } => {
-                        self.scenes.front_mut().unwrap().resize_event(&mut self.context, Vector2::new(w as u32, h as u32));
-                    },
-                    _ => {}
-                }
-            }
+            self.process_events(&mut event_pump);
 
             let Game { ref mut context, ref mut scenes, ref mut imgui_wrapper, ref mut exit, .. } = self;
 
@@ -237,11 +240,6 @@ impl Game {
 
                     self.input_manager.lock().unwrap().update();
                 }
-            }
-
-            if timer::get_ticks(context) % 100 == 0 {
-                println!("Delta frame time: {:?} ", timer::get_delta(context));
-                println!("Average FPS: {}", timer::get_fps(context));
             }
 
             graphics::set_background_color(context, scenes.front_mut().unwrap().background_color());
