@@ -85,10 +85,17 @@ impl<'a, 'b> Level<'a, 'b> {
         (world, dispatcher, chunk_sys)
     }
 
-    pub fn background_color(&self) -> Color {
+    pub fn background_color(&self) -> &Color {
         match self.background {
-            Background::Texture(ref path, col) => col.clone(),
-            Background::Color(col) => col.clone()
+            Background::Texture(_, ref col) => col,
+            Background::Color(ref col) => col
+        }
+    }
+
+    pub fn background_color_mut(&mut self) -> &mut Color {
+        match self.background {
+            Background::Texture(_, ref mut col) => col,
+            Background::Color(ref mut col) => col
         }
     }
 

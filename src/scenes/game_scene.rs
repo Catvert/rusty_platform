@@ -76,5 +76,5 @@ impl<'a, 'b> Scene for GameScene<'a, 'b> {
         Ok(next_state)
     }
 
-    fn background_color(&self) -> Color { self.level.background_color() }
+    fn background_color(&self) -> Color { *self.level.background_color() }
 }

@@ -35,6 +35,8 @@ use ecs::imgui_editor::ImGuiEditor;
 use imgui_sys;
 use imgui::Ui;
 use imgui::ImStr;
+use imgui::ImVec4;
+use imgui::EditableColor;
 
 lazy_static! {
     static ref COMPONENTS_WRAPPERS: HashMap<ComponentsWrapper, &'static ImStr> = {
@@ -257,15 +259,19 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
             if let Some(jp) = input_manager.is_mouse_pressed(&MouseButton::Left) {
                 let next_mode = match self.mode.clone() {
                     EditorMode::Default => {
-                        if *jp {
-                            if let Some(ent) = self.get_entity_under_mouse(&input_manager) {
-                                Some(EditorMode::Select(ent, None))
+                        if !self.is_ui_hover {
+                            if *jp {
+                                if let Some(ent) = self.get_entity_under_mouse(&input_manager) {
+                                    Some(EditorMode::Select(ent, None))
+                                } else {
+                                    None
+                                }
                             } else {
-                                None
+                                let start_point = Point2::new(mouse_in_world.x, mouse_in_world.y);
+                                Some(EditorMode::SelectionRectangle(start_point, start_point))
                             }
                         } else {
-                            let start_point = Point2::new(mouse_in_world.x, mouse_in_world.y);
-                            Some(EditorMode::SelectionRectangle(start_point, start_point))
+                            None
                         }
                     }
                     EditorMode::SelectionRectangle(p1, p2) => {
@@ -527,6 +533,19 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                 }
             });
 
+            ui.menu(im_str!("Niveau")).build(|| {
+                if ui.collapsing_header(im_str!("Arrière plan")).build() {
+                    let color = self.level.background_color_mut();
+
+                    let mut editable_color = [color.r, color.g, color.b];
+                    if ui.color_edit(im_str!("background color"), EditableColor::Float3(&mut editable_color)).build() {
+                        color.r = editable_color[0];
+                        color.g = editable_color[1];
+                        color.b = editable_color[2];
+                    }
+                }
+            });
+
             ui.text(&format!("{:?}", self.mode));
         });
 
@@ -591,7 +610,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
         Ok(next_state)
     }
 
-    fn background_color(&self) -> Color { self.level.background_color() }
+    fn background_color(&self) -> Color { *self.level.background_color() }
 
     fn resize_event(&mut self, _ctx: &mut Context, screen_size: Vector2<u32>) {
         self.camera.set_screen_size(&screen_size);
