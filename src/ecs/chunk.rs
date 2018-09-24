@@ -29,10 +29,11 @@ impl ActiveChunksRect {
     }
 
     pub fn move_to(&mut self, to: &Point2<f32>) {
-        self.rect.move_to(to);
-        self.dirty = true;
+        if self.rect.pos != *to {
+            self.rect.move_to(to);
+            self.dirty = true;
+        }
     }
-
 
     pub fn update_camera(&mut self, camera: &Camera) {
         self.move_to(&camera.location_zero());
@@ -52,7 +53,7 @@ impl ActiveChunksRect {
 
 pub type Chunk = (usize, usize);
 
-#[derive(Component, Default)]
+#[derive(Component, Default, Debug)]
 #[storage(NullStorage)]
 pub struct ActiveChunkMarker;
 
@@ -147,12 +148,16 @@ impl ChunkSystem {
         overlaps_chunks
     }
 
-    fn update_active_entities<'a>(&self, active_storage: &mut WriteStorage<'a, ActiveChunkMarker>, active_rect: &ActiveChunksRect) {
+    fn update_active_entities<'a>(&mut self, entities: &Entities<'a>, active_storage: &mut WriteStorage<'a, ActiveChunkMarker>, active_rect: &ActiveChunksRect) {
         active_storage.clear();
 
         for chunk in self.get_chunks_overlap_rect(active_rect.get_rect()).iter() {
-            for ent in self.chunks.get(*chunk).unwrap().iter() {
-                active_storage.insert(*ent, ActiveChunkMarker).unwrap();
+            for ent in self.chunks.get(*chunk).unwrap().clone().iter() {
+                if entities.is_alive(*ent) {
+                    active_storage.insert(*ent, ActiveChunkMarker).unwrap();
+                } else {
+                    self.chunks.get_mut(*chunk).unwrap().retain(|e| e != ent);
+                }
             }
         }
     }
@@ -175,7 +180,7 @@ impl ChunkSystem {
             self.chunks.get_mut(chunk).unwrap().retain(|e| *e != ent);
         }
 
-        active_storage.remove(ent);
+        active_storage.remove(ent).unwrap();
     }
 
     fn update_entity_chunks<'a>(&mut self, ent: Entity, chunk_comp: &mut ChunkComponent, rect: &Rect, active_storage: &mut WriteStorage<'a, ActiveChunkMarker>, active_rect: &ActiveChunksRect) {
@@ -219,7 +224,8 @@ impl<'a> System<'a> for ChunkSystem {
         }
 
         if active_rect.update_dirty() {
-           self.update_active_entities(&mut active_chunk, &active_rect);
+            println!("dirty");
+           self.update_active_entities(&entities, &mut active_chunk, &active_rect);
         }
     }
 

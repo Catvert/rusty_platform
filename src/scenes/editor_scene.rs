@@ -44,8 +44,9 @@ use nfd::Response;
 lazy_static! {
     static ref COMPONENTS_WRAPPERS: HashMap<ComponentsWrapper, &'static ImStr> = {
         let mut wrappers = HashMap::new();
-        wrappers.insert(ComponentsWrapper::Rect, im_str!("rect"));
-        wrappers.insert(ComponentsWrapper::Input, im_str!("input"));
+        wrappers.insert(ComponentsWrapper::Rect, im_str!("Rectangle"));
+        wrappers.insert(ComponentsWrapper::Input, im_str!("Entrée"));
+        wrappers.insert(ComponentsWrapper::Physics, im_str!("Physique"));
         wrappers
     };
 }
@@ -54,6 +55,7 @@ lazy_static! {
 enum ComponentsWrapper {
     Rect,
     Input,
+    Physics
 }
 
 macro_rules! impl_components_wrapper {
@@ -94,7 +96,7 @@ macro_rules! impl_components_wrapper {
     }
 }
 
-impl_components_wrapper!([ComponentsWrapper::Rect => RectComponent, ComponentsWrapper::Input => InputComponent]);
+impl_components_wrapper!([ComponentsWrapper::Rect => RectComponent, ComponentsWrapper::Input => InputComponent, ComponentsWrapper::Physics => PhysicsComponent]);
 
 struct ImGuiMemoryHelper {
     pub select_entity_view_show_window: bool,
@@ -139,7 +141,7 @@ impl<'a, 'b> EditorScene<'a, 'b> {
                 .with(InputSystem { input_manager: input_manager.clone() }, "input_manager", &[])
                 .with(ActionSystem, "action_system", &["input_manager"])
         }, |world| {
-            for x in 0..100 {
+            for x in 0..1 {
                 for y in 0..1 {
                     Self::create_entity(world, Point2::new(0. + x as f32 * 100., 0. + y as f32 * 100.), Vector2::new(100, 100), SpriteMode::Stretch, false);
                 }

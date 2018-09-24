@@ -39,6 +39,12 @@ impl PhysicsComponent {
     }
 }
 
+impl Default for PhysicsComponent {
+    fn default() -> Self {
+        PhysicsComponent { body_type: BodyType::Static, apply_gravity: false, next_physics_step: VecDeque::new() }
+    }
+}
+
 pub struct PhysicsSystem {
     pub gravity: Vector2<f32>
 }

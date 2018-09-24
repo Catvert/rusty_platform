@@ -15,6 +15,7 @@ lazy_static! {
         wrappers.insert(ActionsWrapper::Empty, im_str!("Vide"));
         wrappers.insert(ActionsWrapper::Move, im_str!("Déplacement"));
         wrappers.insert(ActionsWrapper::PhysicsMove, im_str!("Déplacement physique"));
+        wrappers.insert(ActionsWrapper::DeleteEntity, im_str!("Supprimer l'entité"));
         wrappers
     };
 }
@@ -24,6 +25,7 @@ enum ActionsWrapper {
     Empty,
     Move,
     PhysicsMove,
+    DeleteEntity
 }
 
 impl ActionsWrapper {
@@ -32,6 +34,7 @@ impl ActionsWrapper {
             ActionsWrapper::Empty => { Actions::Empty },
             ActionsWrapper::Move => { Actions::Move(Vector2::new(0., 0.)) },
             ActionsWrapper::PhysicsMove => { Actions::PhysicsMove(Vector2::new(0., 0.)) },
+            ActionsWrapper::DeleteEntity => { Actions::DeleteEntity }
         }
     }
 
@@ -40,6 +43,7 @@ impl ActionsWrapper {
             Actions::Empty => { ActionsWrapper::Empty },
             Actions::Move(_) => { ActionsWrapper::Move },
             Actions::PhysicsMove(_) => { ActionsWrapper::PhysicsMove },
+            Actions::DeleteEntity => { ActionsWrapper::DeleteEntity }
             Actions::EntityAction(_, _) => { ActionsWrapper::PhysicsMove },
             Actions::MultipleActions(_) => { ActionsWrapper::PhysicsMove },
         }
@@ -70,6 +74,7 @@ fn draw_ui_action(mut action: Actions, popup_id: &ImStr, ui: &Ui) -> Actions {
                 ui.slider_float(im_str!("move x"), &mut mv.x, 0., 100.).build();
                 ui.slider_float(im_str!("move y"), &mut mv.y, 0., 100.).build();
             },
+            Actions::DeleteEntity => {}
             Actions::EntityAction(_, _) => {},
             Actions::MultipleActions(_) => {},
         }
@@ -128,5 +133,11 @@ impl ImGuiEditor for InputComponent {
         if ui.button(im_str!("Ajouter"), (-1., 0.)) {
             self.input_actions.push((Keycode::A as i32, false, Actions::Empty));
         }
+    }
+}
+
+impl ImGuiEditor for PhysicsComponent {
+    fn draw_ui(&mut self, ui: &Ui) {
+
     }
 }

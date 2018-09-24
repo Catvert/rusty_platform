@@ -13,7 +13,7 @@ gfx_core = "0.8.2"
 gfx_device_gl = "0.15.3"
 sdl2 = "0.31.0"
 
-specs = { version = "0.12.1", features = ["serde"] }
+specs = { version = "0.12.3", features = ["serde"] }
 specs-derive = "0.2.0"
 shrev = "1.0.1"
 shred = { version = "0.7.0" }

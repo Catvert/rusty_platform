@@ -130,6 +130,7 @@ impl<'a, 'b> Level<'a, 'b> {
 
     pub fn update(&mut self, context: &mut Context, camera: &Camera, dt: f32) {
         self.dispatcher.dispatch(&self.world.res);
+
         self.chunk_sys.run_now(&self.world.res);
 
         self.world.write_resource::<ActiveChunksRect>().update_camera(camera);
