@@ -17,7 +17,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(1),
@@ -37,7 +42,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(2),
@@ -57,7 +67,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(3),
@@ -77,7 +92,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(4),
@@ -97,14 +117,44 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(5),
         components: (Some(RectComponent(
             rect: Rect(
                 pos: [
-                    500,
+                    585.5,
+                    234,
+                ],
+                size: [
+                    100,
+                    100,
+                ],
+            ),
+        )), Some(SpriteComponent(
+            sprite: Sprite(
+                path: "/finch_square.jpg",
+                mode: Stretch,
+            ),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
+    ),
+    EntityData(
+        marker: U64Marker(6),
+        components: (Some(RectComponent(
+            rect: Rect(
+                pos: [
+                    600,
                     0,
                 ],
                 size: [
@@ -117,27 +167,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
-    ),
-    EntityData(
-        marker: U64Marker(6),
-        components: (Some(RectComponent(
-            rect: Rect(
-                pos: [
-                    892,
-                    472.5,
-                ],
-                size: [
-                    100,
-                    100,
-                ],
-            ),
-        )), Some(SpriteComponent(
-            sprite: Sprite(
-                path: "/finch_square.jpg",
-                mode: Stretch,
-            ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(7),
@@ -157,7 +192,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(8),
@@ -177,7 +217,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(9),
@@ -197,7 +242,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(10),
@@ -217,7 +267,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(11),
@@ -237,7 +292,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(12),
@@ -257,7 +317,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(13),
@@ -277,7 +342,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(14),
@@ -297,7 +367,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(15),
@@ -317,7 +392,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(16),
@@ -337,7 +417,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(17),
@@ -357,7 +442,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(18),
@@ -377,7 +467,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(19),
@@ -397,7 +492,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(20),
@@ -417,7 +517,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(21),
@@ -437,7 +542,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(22),
@@ -457,7 +567,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(23),
@@ -477,7 +592,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(24),
@@ -497,7 +617,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(25),
@@ -517,7 +642,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(26),
@@ -537,7 +667,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(27),
@@ -557,7 +692,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(28),
@@ -577,7 +717,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(29),
@@ -597,7 +742,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(30),
@@ -617,7 +767,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(31),
@@ -637,7 +792,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(32),
@@ -657,7 +817,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(33),
@@ -677,7 +842,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(34),
@@ -697,7 +867,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(35),
@@ -717,7 +892,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(36),
@@ -737,7 +917,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(37),
@@ -757,7 +942,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(38),
@@ -777,7 +967,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(39),
@@ -797,7 +992,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(40),
@@ -817,7 +1017,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(41),
@@ -837,7 +1042,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(42),
@@ -857,7 +1067,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(43),
@@ -877,7 +1092,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(44),
@@ -897,7 +1117,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(45),
@@ -917,7 +1142,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(46),
@@ -937,7 +1167,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(47),
@@ -957,7 +1192,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(48),
@@ -977,7 +1217,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(49),
@@ -997,7 +1242,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(50),
@@ -1017,7 +1267,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(51),
@@ -1037,7 +1292,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(52),
@@ -1057,7 +1317,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(53),
@@ -1077,7 +1342,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(54),
@@ -1097,7 +1367,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(55),
@@ -1117,7 +1392,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(56),
@@ -1137,7 +1417,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(57),
@@ -1157,7 +1442,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(58),
@@ -1177,7 +1467,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(59),
@@ -1197,7 +1492,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(60),
@@ -1217,7 +1517,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(61),
@@ -1237,7 +1542,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(62),
@@ -1257,7 +1567,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(63),
@@ -1277,7 +1592,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(64),
@@ -1297,7 +1617,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(65),
@@ -1317,7 +1642,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(66),
@@ -1337,7 +1667,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(67),
@@ -1357,7 +1692,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(68),
@@ -1377,7 +1717,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(69),
@@ -1397,7 +1742,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(70),
@@ -1417,7 +1767,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(71),
@@ -1437,7 +1792,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(72),
@@ -1457,7 +1817,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(73),
@@ -1477,7 +1842,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(74),
@@ -1497,7 +1867,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(75),
@@ -1517,7 +1892,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(76),
@@ -1537,7 +1917,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(77),
@@ -1557,7 +1942,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(78),
@@ -1577,7 +1967,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(79),
@@ -1597,7 +1992,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(80),
@@ -1617,7 +2017,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(81),
@@ -1637,7 +2042,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(82),
@@ -1657,7 +2067,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(83),
@@ -1677,7 +2092,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(84),
@@ -1697,7 +2117,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(85),
@@ -1717,7 +2142,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(86),
@@ -1737,7 +2167,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(87),
@@ -1757,7 +2192,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(88),
@@ -1777,7 +2217,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(89),
@@ -1797,7 +2242,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(90),
@@ -1817,7 +2267,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(91),
@@ -1837,7 +2292,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(92),
@@ -1857,7 +2317,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(93),
@@ -1877,7 +2342,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(94),
@@ -1897,7 +2367,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(95),
@@ -1917,7 +2392,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(96),
@@ -1937,7 +2417,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(97),
@@ -1957,7 +2442,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(98),
@@ -1977,7 +2467,12 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(99),
@@ -1997,15 +2492,20 @@
                 path: "/finch_square.jpg",
                 mode: Stretch,
             ),
-        )), None),
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
+            ],
+        ))),
     ),
     EntityData(
         marker: U64Marker(100),
         components: (Some(RectComponent(
             rect: Rect(
                 pos: [
-                    604.5,
-                    350,
+                    0,
+                    200,
                 ],
                 size: [
                     100,
@@ -2015,10 +2515,7 @@
         )), Some(SpriteComponent(
             sprite: Sprite(
                 path: "/finch_square.jpg",
-                mode: Repeat([
-                    30,
-                    30,
-                ]),
+                mode: Stretch,
             ),
         )), Some(InputComponent(
             input_actions: [
@@ -2038,6 +2535,11 @@
                     10,
                     0,
                 ])),
+            ],
+        )), Some(PhysicsComponent(
+            body_type: Dynamic,
+            apply_gravity: true,
+            next_physics_step: [
             ],
         ))),
     ),

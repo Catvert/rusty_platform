@@ -31,7 +31,7 @@ impl<'a, 'b> GameScene<'a, 'b> {
         let level = Level::load(level_path, resources_manager, |builder| {
             builder.with(InputSystem { input_manager: input_manager.clone() }, "input_manager", &[])
                 .with(ActionSystem, "action_system", &["input_manager"])
-                .with(PhysicsSystem { gravity: Vector2::new(0., -10.) }, "phys_sys", &["action_system"])
+                .with(PhysicsSystem { gravity: Vector2::new(0., 0.) }, "phys_sys", &["action_system"])
         });
 
         let camera = Camera::new(screen_size,  1.);

@@ -38,6 +38,9 @@ use imgui::ImStr;
 use imgui::ImVec4;
 use imgui::EditableColor;
 
+use nfd;
+use nfd::Response;
+
 lazy_static! {
     static ref COMPONENTS_WRAPPERS: HashMap<ComponentsWrapper, &'static ImStr> = {
         let mut wrappers = HashMap::new();
@@ -142,7 +145,7 @@ impl<'a, 'b> EditorScene<'a, 'b> {
                 }
             }
 
-            Self::create_entity(world, Point2::new(0., 200.), Vector2::new(100, 100), SpriteMode::Repeat(Vector2::new(30, 30)), true);
+            Self::create_entity(world, Point2::new(0., 200.), Vector2::new(100, 100), SpriteMode::Stretch, true);
         });
 
         let camera = Camera::new(screen_size, 1.);
@@ -530,6 +533,22 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                 if ui.menu_item(im_str!("Sauvegarder et quitter")).build() {
                     self.level.save();
                     next_state = NextState::Pop;
+                }
+
+                if ui.menu_item(im_str!("Ajouter une ressources ..")).build() {
+                    let result = nfd::open_file_dialog(Some("jpg"), None).unwrap();
+                    match result {
+                        Response::Okay(file) => {
+                            println!("{:?}", file);
+                        },
+                        Response::OkayMultiple(_) => {
+
+                        },
+                        Response::Cancel => {
+
+                        },
+                    }
+
                 }
             });
 

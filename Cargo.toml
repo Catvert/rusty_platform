@@ -31,3 +31,7 @@ lazy_static = "1.1.0"
 imgui = { version = "0.0.20" }
 imgui-gfx-renderer = { version = "0.0.20" }
 imgui-sys = { version = "0.0.20" }
+
+nfd = "0.0.4"
+
+walkdir = "2"

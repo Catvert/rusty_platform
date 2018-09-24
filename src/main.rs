@@ -31,6 +31,10 @@ extern crate imgui;
 extern crate imgui_sys;
 extern crate imgui_gfx_renderer;
 
+extern crate nfd;
+
+extern crate walkdir;
+
 mod wrapper;
 mod ecs;
 mod scenes;

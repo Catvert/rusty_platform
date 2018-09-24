@@ -13,6 +13,7 @@ lazy_static! {
     static ref ACTIONS_WRAPPERS: HashMap<ActionsWrapper, &'static ImStr> = {
         let mut wrappers = HashMap::new();
         wrappers.insert(ActionsWrapper::Empty, im_str!("Vide"));
+        wrappers.insert(ActionsWrapper::Move, im_str!("Déplacement"));
         wrappers.insert(ActionsWrapper::PhysicsMove, im_str!("Déplacement physique"));
         wrappers
     };
@@ -21,6 +22,7 @@ lazy_static! {
 #[derive(Eq, PartialEq, Hash, Clone, Debug)]
 enum ActionsWrapper {
     Empty,
+    Move,
     PhysicsMove,
 }
 
@@ -28,6 +30,7 @@ impl ActionsWrapper {
     fn get_action(&self) -> Actions {
         match *self {
             ActionsWrapper::Empty => { Actions::Empty },
+            ActionsWrapper::Move => { Actions::Move(Vector2::new(0., 0.)) },
             ActionsWrapper::PhysicsMove => { Actions::PhysicsMove(Vector2::new(0., 0.)) },
         }
     }
@@ -35,7 +38,7 @@ impl ActionsWrapper {
     fn from_action(action: &Actions) -> Self {
         match *action {
             Actions::Empty => { ActionsWrapper::Empty },
-            Actions::Move(_) => { ActionsWrapper::PhysicsMove },
+            Actions::Move(_) => { ActionsWrapper::Move },
             Actions::PhysicsMove(_) => { ActionsWrapper::PhysicsMove },
             Actions::EntityAction(_, _) => { ActionsWrapper::PhysicsMove },
             Actions::MultipleActions(_) => { ActionsWrapper::PhysicsMove },

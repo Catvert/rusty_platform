@@ -71,13 +71,14 @@ impl<'a, W: io::Write> System<'a> for SerializeSystem<W> {
         ReadStorage<'a, RectComponent>,
         ReadStorage<'a, SpriteComponent>,
         ReadStorage<'a, InputComponent>,
+        ReadStorage<'a, PhysicsComponent>,
         ReadStorage<'a, U64Marker>,
     );
 
-    fn run(&mut self, (ents, rects, sprites, inputs, markers): Self::SystemData) {
+    fn run(&mut self, (ents, rects, sprites, inputs, physics, markers): Self::SystemData) {
         let mut ser = ron::ser::Serializer::new(Some(Default::default()), true);
         SerializeComponents::<NoError, U64Marker>::serialize(
-            &(&rects, &sprites, &inputs),
+            &(&rects, &sprites, &inputs, &physics),
             &ents,
             &markers,
             &mut ser,
@@ -100,10 +101,11 @@ impl<'a, R: io::Read> System<'a> for DeserializeSystem<R> {
         WriteStorage<'a, RectComponent>,
         WriteStorage<'a, SpriteComponent>,
         WriteStorage<'a, InputComponent>,
+        WriteStorage<'a, PhysicsComponent>,
         WriteStorage<'a, U64Marker>,
     );
 
-    fn run(&mut self, (ent, mut alloc, rects, sprites, inputs, mut markers): Self::SystemData) {
+    fn run(&mut self, (ent, mut alloc, rects, sprites, inputs, physics, mut markers): Self::SystemData) {
         use ron::de::Deserializer;
 
         let mut content: Vec<u8> = vec![];
@@ -112,7 +114,7 @@ impl<'a, R: io::Read> System<'a> for DeserializeSystem<R> {
 
         if let Ok(mut de) = Deserializer::from_bytes(&content) {
             DeserializeComponents::<Combined, _>::deserialize(
-                &mut (rects, sprites, inputs),
+                &mut (rects, sprites, inputs, physics),
                 &ent,
                 &mut markers,
                 &mut alloc,

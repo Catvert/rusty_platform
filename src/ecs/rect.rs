@@ -26,6 +26,8 @@ impl RectComponent {
 
     pub fn get_rect(&self) -> &Rect { &self.rect }
 
+    pub fn get_rect_mut(&mut self) -> &mut Rect { &mut self.rect }
+
     pub fn pos(&self) -> &Point2<f32> {
         &self.rect.pos
     }

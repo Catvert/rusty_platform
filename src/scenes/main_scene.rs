@@ -14,11 +14,17 @@ use wrapper::imgui_wrapper::CenteredWindow;
 use imgui::ImGuiCol;
 use imgui::ImGuiCond;
 
+use std::fs::File;
+
+use walkdir::{WalkDir, DirEntry};
+
 pub struct MainScene {
     resources_manager: RefRM,
     input_manager: RefInputManager,
     background: Image,
     logo: Image,
+    levels: Vec<DirEntry>,
+    show_levels_window: bool,
     show_settings_window: bool,
 }
 
@@ -27,7 +33,15 @@ impl MainScene {
         let resources_manager = RefRM::default();
         let background = resources_manager.borrow_mut().load_or_get_texture(ctx, "/game/mainmenu.png").unwrap().unwrap().clone();
         let logo = resources_manager.borrow_mut().load_or_get_texture(ctx, "/game/logo.png").unwrap().unwrap().clone();
-        MainScene { resources_manager, input_manager, background, logo, show_settings_window: false }
+
+        let levels =  WalkDir::new("resources/levels").into_iter()
+            .filter_map(|e| e.ok())
+            .filter(|e|  e.file_name().to_str()
+                .map(|e| e.ends_with("data.pclvl"))
+                .unwrap_or(false))
+            .collect();
+
+        MainScene { resources_manager, input_manager, background, logo, levels, show_levels_window: false, show_settings_window: false }
     }
 }
 
@@ -79,8 +93,14 @@ impl Scene for MainScene {
             });
         });
 
+        if self.show_levels_window {
+            ui.window(im_str!("Sélection d'un niveau")).opened(&mut self.show_levels_window).build(|| {
+
+            });
+        }
+
         if self.show_settings_window {
-            ui.window(im_str!("Options")).resizable(false).center(ui.frame_size(), (150., 200.), ImGuiCond::Always, ImGuiCond::Once).build(||{
+            ui.window(im_str!("Options")).opened(&mut self.show_settings_window).resizable(false).center(ui.frame_size(), (150., 200.), ImGuiCond::Always, ImGuiCond::Once).build(||{
 
             });
         }
