@@ -18,6 +18,9 @@ use wrapper::imgui_wrapper::CenteredWindow;
 use imgui::Ui;
 use ggez::event::Keycode;
 use imgui::ImGuiCond;
+use std::path::PathBuf;
+use ecs::level::LevelConfig;
+use scenes::main_scene::MainScene;
 
 pub struct GameScene<'a, 'b> {
     level: Level<'a, 'b>,
@@ -27,8 +30,8 @@ pub struct GameScene<'a, 'b> {
 }
 
 impl<'a, 'b> GameScene<'a, 'b> {
-    pub fn new(screen_size: Vector2<u32>, resources_manager: RefRM, input_manager: RefInputManager, level_path: String) -> Self {
-        let level = Level::load(level_path, resources_manager, |builder| {
+    pub fn new(screen_size: Vector2<u32>, resources_manager: RefRM, input_manager: RefInputManager, level_config: LevelConfig) -> Self {
+        let level = Level::load(level_config, resources_manager, |builder| {
             builder.with(InputSystem { input_manager: input_manager.clone() }, "input_manager", &[])
                 .with(ActionSystem, "action_system", &["input_manager"])
                 .with(PhysicsSystem { gravity: Vector2::new(0., 0.) }, "phys_sys", &["action_system"])
@@ -56,7 +59,7 @@ impl<'a, 'b> Scene for GameScene<'a, 'b> {
         Ok(NextState::Continue)
     }
 
-    fn draw_ui(&mut self, window_size: Vector2<u32>, ui: &Ui) -> SceneState {
+    fn draw_ui(&mut self, ctx: &mut Context, _window_size: Vector2<u32>, ui: &Ui) -> SceneState {
         let mut next_state = NextState::Continue;
 
         if self.show_exit_menu {
@@ -68,7 +71,7 @@ impl<'a, 'b> Scene for GameScene<'a, 'b> {
 
                 }
                 if ui.button(im_str!("Quitter"), (-1., 25.)) {
-                    next_state = NextState::Pop;
+                    next_state = NextState::Replace(Box::new(MainScene::new(ctx, self.input_manager.clone())));
                 }
             });
         }

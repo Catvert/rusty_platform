@@ -1,10 +1,10 @@
-use imgui::Ui;
-use ecs::components_prelude::*;
-use ggez::event::Keycode;
-use imgui::{ImString, ImStr};
-
 use std::collections::HashMap;
 
+use imgui::{Ui, ImString, ImStr};
+
+use ggez::event::Keycode;
+
+use ecs::components_prelude::*;
 use ecs::actions::Actions;
 
 use na::Vector2;
@@ -15,6 +15,7 @@ lazy_static! {
         wrappers.insert(ActionsWrapper::Empty, im_str!("Vide"));
         wrappers.insert(ActionsWrapper::Move, im_str!("Déplacement"));
         wrappers.insert(ActionsWrapper::PhysicsMove, im_str!("Déplacement physique"));
+        wrappers.insert(ActionsWrapper::PhysicsJump, im_str!("Saut physique"));
         wrappers.insert(ActionsWrapper::DeleteEntity, im_str!("Supprimer l'entité"));
         wrappers
     };
@@ -25,6 +26,7 @@ enum ActionsWrapper {
     Empty,
     Move,
     PhysicsMove,
+    PhysicsJump,
     DeleteEntity
 }
 
@@ -34,6 +36,7 @@ impl ActionsWrapper {
             ActionsWrapper::Empty => { Actions::Empty },
             ActionsWrapper::Move => { Actions::Move(Vector2::new(0., 0.)) },
             ActionsWrapper::PhysicsMove => { Actions::PhysicsMove(Vector2::new(0., 0.)) },
+            ActionsWrapper::PhysicsJump => { Actions::PhysicsJump(0) }
             ActionsWrapper::DeleteEntity => { Actions::DeleteEntity }
         }
     }
@@ -43,6 +46,7 @@ impl ActionsWrapper {
             Actions::Empty => { ActionsWrapper::Empty },
             Actions::Move(_) => { ActionsWrapper::Move },
             Actions::PhysicsMove(_) => { ActionsWrapper::PhysicsMove },
+            Actions::PhysicsJump(_) => { ActionsWrapper::PhysicsJump }
             Actions::DeleteEntity => { ActionsWrapper::DeleteEntity }
             Actions::EntityAction(_, _) => { ActionsWrapper::PhysicsMove },
             Actions::MultipleActions(_) => { ActionsWrapper::PhysicsMove },
@@ -74,6 +78,12 @@ fn draw_ui_action(mut action: Actions, popup_id: &ImStr, ui: &Ui) -> Actions {
                 ui.slider_float(im_str!("move x"), &mut mv.x, 0., 100.).build();
                 ui.slider_float(im_str!("move y"), &mut mv.y, 0., 100.).build();
             },
+            Actions::PhysicsJump(ref mut height) => {
+                let mut height_i32 = *height as i32;
+                if ui.slider_int(im_str!("height"), &mut height_i32, 0, 100).build() {
+                    *height = height_i32 as u32;
+                }
+            }
             Actions::DeleteEntity => {}
             Actions::EntityAction(_, _) => {},
             Actions::MultipleActions(_) => {},
@@ -137,7 +147,7 @@ impl ImGuiEditor for InputComponent {
 }
 
 impl ImGuiEditor for PhysicsComponent {
-    fn draw_ui(&mut self, ui: &Ui) {
+    fn draw_ui(&mut self, _ui: &Ui) {
 
     }
 }

@@ -19,7 +19,7 @@ pub enum BodyType {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum NextPhysicsStep {
     Move(Vector2<f32>),
-    Jump
+    Jump(u32)
 }
 
 #[derive(Component, Serialize, Deserialize, Clone)]
@@ -50,9 +50,11 @@ pub struct PhysicsSystem {
 }
 
 impl PhysicsSystem {
-    fn move_check_aabb(mv_rect: &mut Rect, other_rects: &Vec<Rect>, mv_x: f32, mv_y: f32) {
+    // Check if moving the rect in axis x and/or y is possible (AABB)
+    fn check_move_aabb(mv_rect: &mut Rect, other_rects: &Vec<Rect>, mv_x: f32, mv_y: f32) -> (bool, bool) {
         let mut can_move_x = true;
         let mut can_move_y = true;
+
         for other_rect in other_rects.iter() {
             if Rect::from(Point2::new(mv_rect.pos.x + mv_x as f32, mv_rect.pos.y), mv_rect.size).overlaps(other_rect) {
                 can_move_x = false;
@@ -63,16 +65,22 @@ impl PhysicsSystem {
             }
         }
 
+        (can_move_x, can_move_y)
+    }
+
+    fn move_rec(mv_rect: &mut Rect, other_rects: &Vec<Rect>, mv_x: f32, mv_y: f32) {
+        let (can_move_x, can_move_y) = Self::check_move_aabb(mv_rect, other_rects, mv_x, mv_y);
+
         if can_move_x {
             mv_rect.move_by(&Vector2::new(mv_x, 0.));
         } else if na::abs(&mv_x) > constants::PHYSICS_EPSILON {
-            Self::move_check_aabb(mv_rect, other_rects, mv_x - (constants::PHYSICS_EPSILON * num::signum(mv_x)), 0.);
+            Self::move_rec(mv_rect, other_rects, mv_x - (constants::PHYSICS_EPSILON * num::signum(mv_x)), 0.);
         }
 
         if can_move_y {
             mv_rect.move_by(&Vector2::new(0., mv_y));
         } else if na::abs(&mv_y) > constants::PHYSICS_EPSILON {
-            Self::move_check_aabb(mv_rect, other_rects, 0., mv_y - (constants::PHYSICS_EPSILON * num::signum(mv_y)));
+            Self::move_rec(mv_rect, other_rects, 0., mv_y - (constants::PHYSICS_EPSILON * num::signum(mv_y)));
         }
     }
 }
@@ -100,22 +108,19 @@ impl<'a> System<'a> for PhysicsSystem {
         }
 
         for (entity, steps) in container.iter_mut() {
-
-            let other_rects: Vec<Rect> = (&*entities, &mut rects, &active_chunk).join().filter(|(e, r, _)| { e != entity }).map(|(e, r, _)| { r.get_rect().clone() }).collect();
+            let other_rects: Vec<Rect> = (&*entities, &mut rects, &active_chunk).join().filter(|(e, _r, _)| { e != entity }).map(|(_e, r, _)| { r.get_rect().clone() }).collect();
             let this_rect = rects.get_mut(*entity).unwrap().get_rect_mut();
 
             while let Some(step) = steps.pop_front() {
                 match step {
                     NextPhysicsStep::Move(mv) => {
-                        Self::move_check_aabb(this_rect, &other_rects, mv.x, mv.y);
+                        Self::move_rec(this_rect, &other_rects, mv.x, mv.y);
                     },
-                    NextPhysicsStep::Jump => {
-
+                    NextPhysicsStep::Jump(height) => {
+                        println!("{:?}", Self::check_move_aabb(this_rect, &other_rects, 0., -constants::PHYSICS_EPSILON));
                     }
                 }
             }
         }
-
-
     }
 }

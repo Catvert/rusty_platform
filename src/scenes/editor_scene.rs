@@ -40,6 +40,11 @@ use imgui::EditableColor;
 
 use nfd;
 use nfd::Response;
+use std::path::Path;
+
+use utils::constants;
+use ecs::level::LevelConfig;
+use scenes::main_scene::MainScene;
 
 lazy_static! {
     static ref COMPONENTS_WRAPPERS: HashMap<ComponentsWrapper, &'static ImStr> = {
@@ -135,8 +140,20 @@ pub struct EditorScene<'a, 'b> {
 }
 
 impl<'a, 'b> EditorScene<'a, 'b> {
-    pub fn new(screen_size: Vector2<u32>, resources_manager: RefRM, input_manager: RefInputManager, level_path: String) -> Self {
-        let level = Level::new(level_path, resources_manager.clone(), |builder| {
+    pub fn load_level(screen_size: Vector2<u32>, resources_manager: RefRM, input_manager: RefInputManager, config: LevelConfig) -> Self {
+        let level = Level::load(config, resources_manager.clone(), |builder| {
+            builder
+                .with(InputSystem { input_manager: input_manager.clone() }, "input_manager", &[])
+                .with(ActionSystem, "action_system", &["input_manager"])
+        });
+
+        let camera = Camera::new(screen_size, 1.);
+
+        EditorScene { level, input_manager, resources_manager, camera, mode: EditorMode::Default, imgui_helper: ImGuiMemoryHelper::new(), is_ui_hover: false }
+    }
+
+    pub fn new_level(screen_size: Vector2<u32>, resources_manager: RefRM, input_manager: RefInputManager, name: String) -> Self {
+        let level = Level::new(String::from("finch"), name, resources_manager.clone(), |builder| {
             builder
                 .with(InputSystem { input_manager: input_manager.clone() }, "input_manager", &[])
                 .with(ActionSystem, "action_system", &["input_manager"])
@@ -157,7 +174,7 @@ impl<'a, 'b> EditorScene<'a, 'b> {
 
     fn create_entity(world: &mut World, pos: Point2<f32>, size: Vector2<u32>, mode: SpriteMode, add_input: bool) {
         let mut builder = world.create_entity()
-            .with(SpriteComponent::new(Sprite::new(String::from("/finch_square.jpg"), mode)))
+            .with(SpriteComponent::new(Sprite::new(Path::new("/finch_square.jpg").to_owned(), mode)))
             .with(RectComponent::new((pos, size).into()));
 
         if add_input {
@@ -223,27 +240,27 @@ impl<'a, 'b> EditorScene<'a, 'b> {
 
             let chunks_bounds = Some(self.level.get_chunk_sys().get_bounds_chunks());
 
-            if let Some(jp) = input_manager.is_key_pressed(&Keycode::Left) {
+            if let Some(_jp) = input_manager.is_key_pressed(&Keycode::Left) {
                 self.camera.move_by(&Vector2::new(-10., 0.), chunks_bounds);
             }
 
-            if let Some(jp) = input_manager.is_key_pressed(&Keycode::Right) {
+            if let Some(_jp) = input_manager.is_key_pressed(&Keycode::Right) {
                 self.camera.move_by(&Vector2::new(10., 0.), chunks_bounds);
             }
 
-            if let Some(jp) = input_manager.is_key_pressed(&Keycode::Up) {
+            if let Some(_jp) = input_manager.is_key_pressed(&Keycode::Up) {
                 self.camera.move_by(&Vector2::new(0., 10.), chunks_bounds);
             }
 
-            if let Some(jp) = input_manager.is_key_pressed(&Keycode::Down) {
+            if let Some(_jp) = input_manager.is_key_pressed(&Keycode::Down) {
                 self.camera.move_by(&Vector2::new(0., -10.), chunks_bounds);
             }
 
-            if let Some(jp) = input_manager.is_key_pressed(&Keycode::P) {
+            if let Some(_jp) = input_manager.is_key_pressed(&Keycode::P) {
                 self.camera.zoom_by(0.005, chunks_bounds);
             }
 
-            if let Some(jp) = input_manager.is_key_pressed(&Keycode::M) {
+            if let Some(_jp) = input_manager.is_key_pressed(&Keycode::M) {
                 self.camera.zoom_by(-0.005, chunks_bounds);
             }
         }
@@ -279,7 +296,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                             None
                         }
                     }
-                    EditorMode::SelectionRectangle(p1, p2) => {
+                    EditorMode::SelectionRectangle(p1, _p2) => {
                         Some(EditorMode::SelectionRectangle(p1, mouse_in_world))
                     }
                     EditorMode::Select(entity, other_entities) => {
@@ -390,7 +407,9 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                     } else {
                         let select_ent = *entities.first().unwrap();
                         let other_entities = Vec::from(&entities[1..]);
-                        self.mode = EditorMode::Select(select_ent, Some(other_entities))
+                        let other_entities = if other_entities.is_empty() { None } else { Some(other_entities) };
+                        self.mode = EditorMode::Select(select_ent, other_entities);
+
                     }
                 }
             }
@@ -527,14 +546,14 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
         Ok(NextState::Continue)
     }
 
-    fn draw_ui(&mut self, window_size: Vector2<u32>, ui: &Ui) -> SceneState {
+    fn draw_ui(&mut self, ctx: &mut Context, _window_size: Vector2<u32>, ui: &Ui) -> SceneState {
         let mut next_state = NextState::Continue;
 
         ui.main_menu_bar(|| {
             ui.menu(im_str!("Fichier")).build(|| {
                 if ui.menu_item(im_str!("Sauvegarder et quitter")).build() {
                     self.level.save();
-                    next_state = NextState::Pop;
+                    next_state = NextState::Replace(Box::new(MainScene::new(ctx, self.input_manager.clone())));
                 }
 
                 if ui.menu_item(im_str!("Ajouter une ressources ..")).build() {

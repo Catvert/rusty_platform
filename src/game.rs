@@ -28,7 +28,7 @@ use wrapper::imgui_wrapper::ImGuiWrapper;
 
 use sdl2::EventPump;
 
-const GAME_CONFIG_PATH: &'static str = "resources/config.ron";
+
 
 #[derive(Serialize, Deserialize, Debug)]
 struct GameConfig {
@@ -39,32 +39,13 @@ struct GameConfig {
 }
 
 impl GameConfig {
-    fn load() -> Self {
-        let config_file = File::open(GAME_CONFIG_PATH);
-
-        let default_and_save = || {
-            let config = GameConfig::default();
-            config.save();
-            config
-        };
-
-        match config_file {
-            Ok(file) => {
-                let mut content = String::new();
-                ron::de::from_reader(file).unwrap_or_else(|err| {
-                    println!("Le fichier de configuration est corrompu ! Création d'une nouvelle configuration..");
-                    default_and_save()
-                })
-            }
-            Err(e) => {
-                println!("Le fichier de configuration est absent ! Création d'une nouvelle configuration..");
-                default_and_save()
-            }
-        }
+    fn load() -> Result<Self, ron::de::Error> {
+        let config_file = File::open(constants::path::GAME_CONFIG_FILE.as_path()).map_err(|err| ron::de::Error::from(err))?;
+        ron::de::from_reader::<File, Self>(config_file)
     }
 
     fn save(&self) {
-        let mut config_file = File::create(GAME_CONFIG_PATH).expect("Impossible de créer le fichier de configuration !");
+        let mut config_file = File::create(constants::path::GAME_CONFIG_FILE.as_path()).expect("Impossible de créer le fichier de configuration !");
         let content = ron::ser::to_string_pretty(&self, Default::default()).expect("Impossible de sérialiser la configuration !");
         config_file.write_all(content.as_bytes()).expect("Impossible d'écrire la configuration dans le fichier !");
     }
@@ -86,7 +67,12 @@ pub struct Game {
 
 impl Game {
     pub fn new() -> Self {
-        let GameConfig { window_size: (width, height), fullscreen_type, borderless, vsync } = GameConfig::load();
+        let GameConfig { window_size: (width, height), fullscreen_type, borderless, vsync } = GameConfig::load().unwrap_or_else(|err| {
+            eprintln!("Le fichier de configuration est inexistant ou corrompu ! Création de la configuration par défaut.. Erreur : {}", err);
+            let config = GameConfig::default();
+            config.save();
+            config
+        });
 
         let window_setup = WindowSetup {
             title: "Rusty-Platform".to_string(),
@@ -131,6 +117,11 @@ impl Game {
                         scenes.push_front(scene);
                         false
                     },
+                    NextState::Replace(scene) => {
+                        scenes.pop_front();
+                        scenes.push_front(scene);
+                        false
+                    }
                     NextState::Pop => {
                         scenes.pop_front();
                         scenes.is_empty()
@@ -158,8 +149,6 @@ impl Game {
                 }
                 KeyDown {
                     keycode,
-                    keymod,
-                    repeat,
                     ..
                 } => {
                     if let Some(key) = keycode {
@@ -168,8 +157,6 @@ impl Game {
                 }
                 KeyUp {
                     keycode,
-                    keymod,
-                    repeat,
                     ..
                 } => {
                     if let Some(key) = keycode {
@@ -177,30 +164,29 @@ impl Game {
                     }
                 }
                 MouseButtonDown {
-                    mouse_btn, x, y, ..
+                    mouse_btn, ..
                 } => {
                     input_manager.update_mouse(mouse_btn, true);
                 },
                 MouseButtonUp {
-                    mouse_btn, x, y, ..
+                    mouse_btn, ..
                 } => {
                     input_manager.update_mouse(mouse_btn, false);
                 },
                 MouseMotion {
-                    mousestate,
                     x,
                     y,
-                    xrel,
-                    yrel,
                     ..
                 } => {
                     input_manager.update_mouse_pos(Point2::new(x, y));
                 },
-                MouseWheel { x, y, .. } => {},
-                ControllerButtonDown { button, which, .. } => {}
-                ControllerButtonUp { button, which, .. } => {}
+                MouseWheel { x: _, y: _, .. } => {
+
+                },
+                ControllerButtonDown { button: _, which: _, .. } => {}
+                ControllerButtonUp { button: _, which: _, .. } => {}
                 ControllerAxisMotion {
-                    axis, value, which, ..
+                    axis: _, value: _, which: _, ..
                 } => {},
                 Window {
                     win_event: WindowEvent::FocusGained,
@@ -255,10 +241,8 @@ impl Game {
                 let window_size = context.gfx_context.window.drawable_size();
                 let window_size = Vector2::new(window_size.0, window_size.1);
 
-                imgui_wrapper.render_ui(context, move |ui| {
-                    let result = scenes.front_mut().unwrap().draw_ui( window_size, ui);
-                    Self::handle_scene_state(result, scenes, exit)
-                });
+                let result = imgui_wrapper.render_scene_ui(context,scenes.front_mut().unwrap());
+                Self::handle_scene_state(result, scenes, exit);
             }
 
             graphics::present(context);

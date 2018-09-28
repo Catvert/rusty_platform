@@ -9,6 +9,7 @@ use utils::camera::Camera;
 use utils::math::Rect;
 use ggez::graphics::spritebatch::SpriteBatch;
 use ggez::error::GameResult;
+use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum SpriteMode {
@@ -18,14 +19,14 @@ pub enum SpriteMode {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Sprite {
-    path: String,
+    path: PathBuf,
     mode: SpriteMode,
     #[serde(skip)]
     image: Option<Image>
 }
 
 impl Sprite {
-    pub fn new(path: String, mode: SpriteMode) -> Self {
+    pub fn new(path: PathBuf, mode: SpriteMode) -> Self {
         Sprite { path, mode, image: None }
     }
 

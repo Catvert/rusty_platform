@@ -75,7 +75,7 @@ pub struct ChunkSystem {
 }
 
 impl ChunkSystem {
-    pub fn new((width, height): (usize, usize), active_rect: Rect) -> Self {
+    pub fn new((width, height): (usize, usize), _active_rect: Rect) -> Self {
         let chunks: Array2<Vec<Entity>> = Array::default((width, height));
         let chunks_rect = Rect::new(0., 0., CHUNK_SIZE * width as u32, CHUNK_SIZE * height as u32);
         ChunkSystem {
@@ -224,7 +224,6 @@ impl<'a> System<'a> for ChunkSystem {
         }
 
         if active_rect.update_dirty() {
-            println!("dirty");
            self.update_active_entities(&entities, &mut active_chunk, &active_rect);
         }
     }

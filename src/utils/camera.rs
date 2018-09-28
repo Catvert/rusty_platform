@@ -50,7 +50,7 @@ impl Camera {
         };
     }
 
-    pub fn zoom_by(&mut self, by: f32, bounds: Option<&Rect>) {
+    pub fn zoom_by(&mut self, by: f32, _bounds: Option<&Rect>) {
         self.zoom = clamp(self.zoom + by, 0.2, 100.);
     }
 

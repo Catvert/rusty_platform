@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::fs::{self, File};
 
 use ggez::Context;
 use ggez::graphics::{self, BlendMode};
@@ -22,36 +22,89 @@ use ecs::rect::RectComponent;
 use ecs::actions::*;
 use ecs::chunk::ChunkSystem;
 
+use serde;
+
+use utils::serde::ColorDef;
+use std::path::{Path, PathBuf};
+
+use utils::constants;
+
+use ron;
+use std::io::Write;
+use std::io::Read;
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum Background {
-    Texture(String, Color),
-    Color(Color)
+    Texture(String, #[serde(with = "ColorDef")] Color),
+    Color(#[serde(with = "ColorDef")] Color)
+}
+
+impl Default for Background {
+    fn default() -> Self {
+        Background::Color((100, 200, 0, 255).into())
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct LevelConfig {
+    pub author: String,
+    pub name: String,
+    pub background: Background,
+    pub dir: PathBuf,
+}
+
+impl LevelConfig {
+    pub fn load(dir: PathBuf) -> Result<Self, ron::de::Error> {
+        assert!(dir.is_dir());
+
+        let config_file = File::open(dir.join(constants::path::LEVEL_CONFIG_FILE.as_path())).map_err(|err| ron::de::Error::from(err))?;
+        ron::de::from_reader::<File, Self>(config_file)
+    }
+
+    pub fn save(&self) {
+        let mut config_file = File::create(self.dir.join(constants::path::LEVEL_CONFIG_FILE.as_path())).expect("Impossible de créer le fichier de configuration du niveau !");
+        let content = ron::ser::to_string_pretty(&self, Default::default()).expect("Impossible de sérialiser la configuration du niveau !");
+        config_file.write_all(content.as_bytes()).expect("Impossible d'écrire la configuration du niveau dans le fichier !");
+    }
+
+    fn world_data_path(&self) -> PathBuf {
+        self.dir.join(constants::path::LEVEL_WORLD_DATA_FILE.as_path())
+    }
 }
 
 pub struct Level<'a, 'b> {
-    level_path: String,
+    config: LevelConfig,
     world: World,
     dispatcher: Dispatcher<'a, 'b>,
     chunk_sys: ChunkSystem,
     resources_manager: RefRM,
-    background: Background,
     blend_mode: Option<BlendMode>
 }
 
 impl<'a, 'b> Level<'a, 'b> {
-    pub fn load<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>>(level_path: String, resources_manager: RefRM, build_dispatcher: F) -> Self {
+    pub fn load<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>>(config: LevelConfig, resources_manager: RefRM, build_dispatcher: F) -> Self {
         let (world, dispatcher, chunk_sys) = Self::build_default_world(build_dispatcher);
 
-        DeserializeSystem { reader: File::open(&level_path).unwrap()  }.run_now(&world.res);
+        DeserializeSystem { reader: File::open(&config.world_data_path()).unwrap()  }.run_now(&world.res);
 
-        Level { level_path, world, dispatcher, chunk_sys, resources_manager, background: Background::Color((100, 200, 0, 255).into()), blend_mode: None }
+        Level { config, world, dispatcher, chunk_sys, resources_manager, blend_mode: None }
     }
 
-    pub fn new<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>, W: FnMut(&mut World) -> ()>(level_path: String, resources_manager: RefRM, build_dispatcher: F, mut populate_world: W) -> Self {
+    pub fn new<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>, W: FnMut(&mut World) -> ()>(author: String, name: String, resources_manager: RefRM, build_dispatcher: F, mut populate_world: W) -> Self {
         let (mut world, dispatcher, chunk_sys) = Self::build_default_world(build_dispatcher);
 
         populate_world(&mut world);
 
-       Level { level_path, world, dispatcher, chunk_sys, resources_manager, background: Background::Color((100, 200, 0, 255).into()), blend_mode: None }
+        let dir = constants::path::LEVELS_DIR.join(Path::new(&name));
+
+        let config = LevelConfig {
+            author,
+            name,
+            background: Background::default(),
+            dir
+        };
+
+       Level { config, world, dispatcher, chunk_sys, resources_manager, blend_mode: None }
     }
 
     pub fn get_world(&self) -> &World { &self.world }
@@ -86,14 +139,14 @@ impl<'a, 'b> Level<'a, 'b> {
     }
 
     pub fn background_color(&self) -> &Color {
-        match self.background {
+        match self.config.background {
             Background::Texture(_, ref col) => col,
             Background::Color(ref col) => col
         }
     }
 
     pub fn background_color_mut(&mut self) -> &mut Color {
-        match self.background {
+        match self.config.background {
             Background::Texture(_, ref mut col) => col,
             Background::Color(ref mut col) => col
         }
@@ -105,7 +158,7 @@ impl<'a, 'b> Level<'a, 'b> {
         let active_chunk = self.world.write_storage::<ActiveChunkMarker>();
         let active_rect_chunk = self.world.read_resource::<ActiveChunksRect>().get_rect().clone();
 
-        if let Background::Texture(ref path, ref col) = self.background {
+        if let Background::Texture(ref _path, ref _col) = self.config.background {
 
         }
 
@@ -125,10 +178,15 @@ impl<'a, 'b> Level<'a, 'b> {
     }
 
     pub fn save(&self) {
-        SerializeSystem { writer: File::create(&self.level_path).unwrap() }.run_now(&self.world.res);
+        if !self.config.dir.exists() {
+            fs::create_dir(&self.config.dir).unwrap();
+        }
+
+        SerializeSystem { writer: File::create(&self.config.world_data_path()).unwrap() }.run_now(&self.world.res);
+        self.config.save();
     }
 
-    pub fn update(&mut self, context: &mut Context, camera: &Camera, dt: f32) {
+    pub fn update(&mut self, _context: &mut Context, camera: &Camera, _dt: f32) {
         self.dispatcher.dispatch(&self.world.res);
 
         self.chunk_sys.run_now(&self.world.res);

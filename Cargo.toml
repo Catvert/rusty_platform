@@ -18,13 +18,13 @@ specs-derive = "0.2.0"
 shrev = "1.0.1"
 shred = { version = "0.7.0" }
 
-serde = "1.0.71"
-serde_derive = "1.0.71"
+serde = "1.0.79"
+serde_derive = "1.0.79"
 ron = "0.4.0"
 
 num = "0.2.0"
 nalgebra = { version="0.14", features= ["serde-serialize"] }
-ndarray = "0.11.2"
+ndarray = "0.12.0"
 
 lazy_static = "1.1.0"
 

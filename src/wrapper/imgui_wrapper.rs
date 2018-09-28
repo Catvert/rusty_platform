@@ -16,6 +16,9 @@ use gfx::{CommandBuffer, Encoder};
 use ggez::event::Event;
 use sdl2::event::WindowEvent;
 use std::time::Instant;
+use scenes::Scene;
+use na::Vector2;
+use scenes::SceneState;
 
 const IMGUI_TAB: u8 = 0;
 const IMGUI_LEFT_ARROW: u8 = 1;
@@ -216,7 +219,7 @@ impl ImGuiWrapper {
             Event::MouseWheel { y, .. } => {
                 self.mouse_state.wheel = y as f32;
             }
-            Event::Window { win_event: WindowEvent::Resized(w, h), .. } => {
+            Event::Window { win_event: WindowEvent::Resized(_w, _h), .. } => {
                 self.renderer.update_render_target(RenderTargetView::new(ctx.gfx_context.screen_render_target.clone()));
             }
             _ => {}
@@ -247,12 +250,31 @@ impl ImGuiWrapper {
         imgui.set_imgui_key(ImGuiKey::Z, IMGUI_Z);
     }
 
-    pub fn render_ui<F: FnMut(&Ui) -> ()>(&mut self, ctx: &mut Context, run_ui: F) {
+    pub fn render_scene_ui(&mut self, ctx: &mut Context, scene: &mut Box<dyn Scene>) -> SceneState {
+        self.update_mouse();
+
         let logical_size = ctx.gfx_context.window.drawable_size();
+
+        let frame_size = FrameSize {
+            logical_size: (logical_size.0 as f64, logical_size.1 as f64),
+            hidpi_factor: 1.0,
+        };
+
+        let now = Instant::now();
+        let delta = now - self.last_frame;
+        let delta_s = delta.as_secs() as f32 + delta.subsec_nanos() as f32 / 1_000_000_000.0;
+        self.last_frame = now;
+
+        let ui = self.imgui.frame(frame_size, delta_s);
+
+        let next_scene_state = scene.draw_ui(ctx, Vector2::new(logical_size.0, logical_size.1), &ui);
+
         let factory = &mut *ctx.gfx_context.factory;
         let encoder = &mut ctx.gfx_context.encoder;
 
-        self.render_ui_ex(logical_size, factory, encoder, run_ui);
+        self.renderer.render(ui, &mut *factory, encoder).expect("Un problème est survenu lors de l'affichage d'ImGui !");
+
+        next_scene_state
     }
 
     pub fn render_ui_ex<R: FnMut(&Ui) -> (), F: Factory<gfx_device_gl::Resources>, C: CommandBuffer<gfx_device_gl::Resources>>(&mut self, logical_size: (u32, u32), factory: &mut F, encoder: &mut Encoder<gfx_device_gl::Resources, C>,  mut run_ui: R) {
