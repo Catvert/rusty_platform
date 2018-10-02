@@ -9,7 +9,6 @@ use na::{Point2, Vector2};
 
 use utils::resources_manager::RefRM;
 use utils::input_manager::{InputManager, RefInputManager};
-use utils::camera::Camera;
 use utils::math::Rect;
 
 use ecs::rect::RectComponent;
@@ -45,6 +44,7 @@ use std::path::Path;
 use utils::constants;
 use ecs::level::LevelConfig;
 use scenes::main_scene::MainScene;
+use utils::camera::Camera;
 
 lazy_static! {
     static ref COMPONENTS_WRAPPERS: HashMap<ComponentsWrapper, &'static ImStr> = {
@@ -124,7 +124,7 @@ impl ImGuiMemoryHelper {
 #[derive(Debug, Clone)]
 enum EditorMode {
     Default,
-    SelectionRectangle(Point2<f32>, Point2<f32>),
+    SelectionRectangle(Point2<f64>, Point2<f64>),
     Select(Entity, Option<Vec<Entity>>),
     Copy(Entity, Option<Vec<Entity>>),
 }
@@ -160,7 +160,7 @@ impl<'a, 'b> EditorScene<'a, 'b> {
         }, |world| {
             for x in 0..1 {
                 for y in 0..1 {
-                    Self::create_entity(world, Point2::new(0. + x as f32 * 100., 0. + y as f32 * 100.), Vector2::new(100, 100), SpriteMode::Stretch, false);
+                    Self::create_entity(world, Point2::new(0. + x as f64 * 100., 0. + y as f64 * 100.), Vector2::new(100, 100), SpriteMode::Stretch, false);
                 }
             }
 
@@ -172,7 +172,7 @@ impl<'a, 'b> EditorScene<'a, 'b> {
         EditorScene { level, input_manager, resources_manager, camera, mode: EditorMode::Default, imgui_helper: ImGuiMemoryHelper::new(), is_ui_hover: false }
     }
 
-    fn create_entity(world: &mut World, pos: Point2<f32>, size: Vector2<u32>, mode: SpriteMode, add_input: bool) {
+    fn create_entity(world: &mut World, pos: Point2<f64>, size: Vector2<u32>, mode: SpriteMode, add_input: bool) {
         let mut builder = world.create_entity()
             .with(SpriteComponent::new(Sprite::new(Path::new("/finch_square.jpg").to_owned(), mode)))
             .with(RectComponent::new((pos, size).into()));
@@ -191,7 +191,7 @@ impl<'a, 'b> EditorScene<'a, 'b> {
             .build();
     }
 
-    pub fn clone_entity(world: &mut World, ent: Entity, new_pos: Point2<f32>) -> Entity {
+    pub fn clone_entity(world: &mut World, ent: Entity, new_pos: Point2<f64>) -> Entity {
         use ecs::serialization;
 
         let copy_ent = serialization::copy_entity(ent, world);
@@ -207,7 +207,9 @@ impl<'a, 'b> EditorScene<'a, 'b> {
         let entities = self.level.get_world().entities();
         let rect_storage = self.level.get_world().read_storage::<RectComponent>();
         let active_marker = self.level.get_world().read_storage::<ActiveChunkMarker>();
-        let mouse_pos_in_world = self.camera.screen_to_world_coords(input_manager.get_mouse_pos());
+        let mouse_pos = input_manager.get_mouse_pos();
+
+        let mouse_pos_in_world = self.camera.screen_to_world_coords(mouse_pos);
 
         for (ent, rect, _) in (&*entities, &rect_storage, &active_marker).join() {
             if rect.get_rect().contains(mouse_pos_in_world) {
@@ -257,11 +259,11 @@ impl<'a, 'b> EditorScene<'a, 'b> {
             }
 
             if let Some(_jp) = input_manager.is_key_pressed(&Keycode::P) {
-                self.camera.zoom_by(0.005, chunks_bounds);
+                self.camera.zoom_by(0.001, chunks_bounds);
             }
 
             if let Some(_jp) = input_manager.is_key_pressed(&Keycode::M) {
-                self.camera.zoom_by(-0.005, chunks_bounds);
+                self.camera.zoom_by(-0.001, chunks_bounds);
             }
         }
     }
@@ -314,11 +316,11 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
 
                                         let bounds = self.level.get_chunk_sys().get_bounds_chunks();
 
-                                        if !(bounds.left() <= rect.pos().x + move_x && bounds.right() >= rect.pos().x + move_x + rect.size().x as f32) {
+                                        if !(bounds.left() <= rect.pos().x + move_x && bounds.right() >= rect.pos().x + move_x + rect.size().x as f64) {
                                             move_x = 0.;
                                         }
 
-                                        if !(bounds.top() <= rect.pos().y + move_y && bounds.bottom() >= rect.pos().y + move_y + rect.size().y as f32) {
+                                        if !(bounds.top() <= rect.pos().y + move_y && bounds.bottom() >= rect.pos().y + move_y + rect.size().y as f64) {
                                             move_y = 0.;
                                         }
 
@@ -376,7 +378,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                                 (select_rect, other_ent_pos)
                             };
 
-                            let select_rect_placed = Rect::from(Point2::new(mouse_in_world.x - select_rect.size.x as f32 / 2., mouse_in_world.y - select_rect.size.y as f32 / 2.), select_rect.size);
+                            let select_rect_placed = Rect::from(Point2::new(mouse_in_world.x - select_rect.size.x as f64 / 2., mouse_in_world.y - select_rect.size.y as f64 / 2.), select_rect.size);
                             Self::clone_entity(self.level.get_world_mut(), entity, Point2::new(select_rect_placed.pos.x, select_rect_placed.pos.y));
 
                             for (other_ent, pos) in other_ent_pos.iter() {
@@ -516,7 +518,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                 let mut sprite_storage = self.level.get_world().write_storage::<SpriteComponent>();
                 if let Some(select_rect) = rect_storage.get(entity) {
                     let size = select_rect.get_rect().size;
-                    let select_rect_placed = Rect::from(Point2::new(mouse_in_world.x - size.x as f32 / 2., mouse_in_world.y - size.y as f32 / 2.), size);
+                    let select_rect_placed = Rect::from(Point2::new(mouse_in_world.x - size.x as f64 / 2., mouse_in_world.y - size.y as f64 / 2.), size);
 
                     if let Some(spr) = sprite_storage.get_mut(entity) {
                         spr.draw(ctx, &select_rect_placed, &self.camera, &self.resources_manager);
@@ -653,6 +655,6 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
     fn background_color(&self) -> Color { *self.level.background_color() }
 
     fn resize_event(&mut self, _ctx: &mut Context, screen_size: Vector2<u32>) {
-        self.camera.set_screen_size(&screen_size);
+        //self.camera.set_screen_size(&screen_size);
     }
 }

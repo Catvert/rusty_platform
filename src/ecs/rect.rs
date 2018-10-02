@@ -28,11 +28,11 @@ impl RectComponent {
 
     pub fn get_rect_mut(&mut self) -> &mut Rect { &mut self.rect }
 
-    pub fn pos(&self) -> &Point2<f32> {
+    pub fn pos(&self) -> &Point2<f64> {
         &self.rect.pos
     }
 
-    pub fn pos_mut(&mut self) -> &mut Point2<f32> {
+    pub fn pos_mut(&mut self) -> &mut Point2<f64> {
         &mut self.rect.pos
     }
 
@@ -44,11 +44,11 @@ impl RectComponent {
         &mut self.rect.size
     }
 
-    pub fn move_by(&mut self, by: &Vector2<f32>) {
+    pub fn move_by(&mut self, by: &Vector2<f64>) {
         self.rect.move_by(by);
     }
 
-    pub fn move_to(&mut self, to: &Point2<f32>) {
+    pub fn move_to(&mut self, to: &Point2<f64>) {
         self.rect.move_to(to);
     }
 }

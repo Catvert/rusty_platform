@@ -71,12 +71,26 @@ fn draw_ui_action(mut action: Actions, popup_id: &ImStr, ui: &Ui) -> Actions {
                 ui.text("Vide !");
             },
             Actions::Move(ref mut mv) => {
-                ui.slider_float(im_str!("move x"), &mut mv.x, 0., 100.).build();
-                ui.slider_float(im_str!("move y"), &mut mv.y, 0., 100.).build();
+                let mut x = mv.x as f32;
+                let mut y = mv.y as f32;
+
+                if ui.slider_float(im_str!("move x"), &mut x, 0., 100.).build() {
+                    mv.x = y as f64;
+                }
+                if ui.slider_float(im_str!("move y"), &mut y, 0., 100.).build() {
+                    mv.y = x as f64;
+                }
             },
             Actions::PhysicsMove(ref mut mv) => {
-                ui.slider_float(im_str!("move x"), &mut mv.x, 0., 100.).build();
-                ui.slider_float(im_str!("move y"), &mut mv.y, 0., 100.).build();
+                let mut x = mv.x as f32;
+                let mut y = mv.y as f32;
+
+                if ui.slider_float(im_str!("move x"), &mut x, 0., 100.).build() {
+                    mv.x = y as f64;
+                }
+                if ui.slider_float(im_str!("move y"), &mut y, 0., 100.).build() {
+                    mv.y = x as f64;
+                }
             },
             Actions::PhysicsJump(ref mut height) => {
                 let mut height_i32 = *height as i32;
@@ -99,11 +113,19 @@ pub trait ImGuiEditor {
 
 impl ImGuiEditor for RectComponent {
     fn draw_ui(&mut self, ui: &Ui) {
-        ui.drag_float(im_str!("x"), &mut self.pos_mut().x).build();
-        ui.drag_float(im_str!("y"), &mut self.pos_mut().y).build();
+        let mut x = self.pos_mut().x as f32;
+        let mut y = self.pos_mut().y as f32;
+
+        if ui.drag_float(im_str!("x"), &mut x).build() {
+            self.pos_mut().x = x as f64;
+        }
+        if ui.drag_float(im_str!("y"), &mut y).build() {
+            self.pos_mut().y = y as f64;
+        }
 
         let mut w = self.size().x as i32;
         let mut h = self.size().y as i32;
+
         if ui.drag_int(im_str!("w"), &mut w).build() {
             self.size_mut().x = w as u32;
         }

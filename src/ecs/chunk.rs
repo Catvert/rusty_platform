@@ -23,12 +23,12 @@ impl ActiveChunksRect {
 
     pub fn get_rect(&self) -> &Rect { &self.rect }
 
-    pub fn move_by(&mut self, by: &Vector2<f32>) {
+    pub fn move_by(&mut self, by: &Vector2<f64>) {
         self.rect.move_by(by);
         self.dirty = true;
     }
 
-    pub fn move_to(&mut self, to: &Point2<f32>) {
+    pub fn move_to(&mut self, to: &Point2<f64>) {
         if self.rect.pos != *to {
             self.rect.move_to(to);
             self.dirty = true;
@@ -107,7 +107,7 @@ impl ChunkSystem {
     pub fn get_bounds_chunks(&self) -> &Rect { &self.chunks_rect }
 
     fn get_chunk_rect(chunk: Chunk) -> Rect {
-        Rect::new(chunk.0 as f32 * CHUNK_SIZE as f32, chunk.1 as f32 * CHUNK_SIZE as f32, CHUNK_SIZE as u32, CHUNK_SIZE as u32)
+        Rect::new(chunk.0 as f64 * CHUNK_SIZE as f64, chunk.1 as f64 * CHUNK_SIZE as f64, CHUNK_SIZE as u32, CHUNK_SIZE as u32)
     }
 
     fn get_chunks_overlap_rect(&self, rect: &Rect) -> Vec<Chunk> {

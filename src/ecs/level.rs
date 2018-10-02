@@ -163,11 +163,11 @@ impl<'a, 'b> Level<'a, 'b> {
         }
 
         let x = camera.world_to_screen_coords(active_rect_chunk.pos);
-        let size = camera.calculate_dest_scale(Point2::new(active_rect_chunk.size.x as f32, active_rect_chunk.size.y as f32));
+        let size = camera.calculate_dest_scale(Point2::new(active_rect_chunk.size.x as f64, active_rect_chunk.size.y as f64));
 
         graphics::set_color(ctx, (100, 0, 200, 255).into()).unwrap();
 
-        graphics::rectangle(ctx, graphics::DrawMode::Line(1.), graphics::Rect::new(x.x as f32, x.y as f32, size.x, -size.y)).unwrap();
+        graphics::rectangle(ctx, graphics::DrawMode::Line(1.), graphics::Rect::new(x.x as f32, x.y as f32, size.x as f32, -size.y as f32)).unwrap();
 
         graphics::set_color(ctx, (255, 255, 255, 255).into()).unwrap();
 

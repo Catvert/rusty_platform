@@ -18,7 +18,7 @@ pub enum BodyType {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum NextPhysicsStep {
-    Move(Vector2<f32>),
+    Move(Vector2<f64>),
     Jump(u32)
 }
 
@@ -46,21 +46,21 @@ impl Default for PhysicsComponent {
 }
 
 pub struct PhysicsSystem {
-    pub gravity: Vector2<f32>
+    pub gravity: Vector2<f64>
 }
 
 impl PhysicsSystem {
     // Check if moving the rect in axis x and/or y is possible (AABB)
-    fn check_move_aabb(mv_rect: &mut Rect, other_rects: &Vec<Rect>, mv_x: f32, mv_y: f32) -> (bool, bool) {
+    fn check_move_aabb(mv_rect: &mut Rect, other_rects: &Vec<Rect>, mv_x: f64, mv_y: f64) -> (bool, bool) {
         let mut can_move_x = true;
         let mut can_move_y = true;
 
         for other_rect in other_rects.iter() {
-            if Rect::from(Point2::new(mv_rect.pos.x + mv_x as f32, mv_rect.pos.y), mv_rect.size).overlaps(other_rect) {
+            if Rect::from(Point2::new(mv_rect.pos.x + mv_x as f64, mv_rect.pos.y), mv_rect.size).overlaps(other_rect) {
                 can_move_x = false;
             }
 
-            if Rect::from(Point2::new(mv_rect.pos.x as f32, mv_rect.pos.y + mv_y as f32), mv_rect.size).overlaps(other_rect) {
+            if Rect::from(Point2::new(mv_rect.pos.x as f64, mv_rect.pos.y + mv_y as f64), mv_rect.size).overlaps(other_rect) {
                 can_move_y = false;
             }
         }
@@ -68,7 +68,7 @@ impl PhysicsSystem {
         (can_move_x, can_move_y)
     }
 
-    fn move_rec(mv_rect: &mut Rect, other_rects: &Vec<Rect>, mv_x: f32, mv_y: f32) {
+    fn move_rec(mv_rect: &mut Rect, other_rects: &Vec<Rect>, mv_x: f64, mv_y: f64) {
         let (can_move_x, can_move_y) = Self::check_move_aabb(mv_rect, other_rects, mv_x, mv_y);
 
         if can_move_x {

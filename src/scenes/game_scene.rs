@@ -37,7 +37,7 @@ impl<'a, 'b> GameScene<'a, 'b> {
                 .with(PhysicsSystem { gravity: Vector2::new(0., 0.) }, "phys_sys", &["action_system"])
         });
 
-        let camera = Camera::new(screen_size,  1.);
+        let camera = Camera::new(screen_size,1.);
 
         GameScene { level, input_manager, camera, show_exit_menu: false }
     }

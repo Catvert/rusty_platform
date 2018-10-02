@@ -14,8 +14,8 @@ pub struct ActionComponent {
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub enum Actions {
     Empty,
-    Move(Vector2<f32>),
-    PhysicsMove(Vector2<f32>),
+    Move(Vector2<f64>),
+    PhysicsMove(Vector2<f64>),
     PhysicsJump(u32),
     DeleteEntity,
     EntityAction(U64Marker, Box<Actions>),

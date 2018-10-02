@@ -45,13 +45,13 @@ impl Sprite {
 
         match self.mode {
             SpriteMode::Stretch => {
-                let scale = camera.calculate_dest_scale(Point2::new(rect.size.x as f32 / image.width() as f32, rect.size.y as f32 / image.height() as f32));
-                let pos_in_screen = camera.world_to_screen_coords(Point2::new(rect.pos.x, rect.pos.y + rect.size.y as f32));
+                let scale = camera.calculate_dest_scale(Point2::new(rect.size.x as f64 / image.width() as f64, rect.size.y as f64 / image.height() as f64));
+                let pos_in_screen = camera.world_to_screen_coords(Point2::new(rect.pos.x, rect.pos.y + rect.size.y as f64));
 
-                graphics::draw_ex(ctx, &image, DrawParam { dest: Point2::new(pos_in_screen.x as f32, pos_in_screen.y as f32), scale: Point2::new(scale.x as f32, scale.y as f32), ..Default::default() }).expect("Erreur lors du dessin!")
+                graphics::draw_ex(ctx, &image, DrawParam { dest: Point2::new(pos_in_screen.x as f32, pos_in_screen.y as f32), scale: Point2::new(scale.x as f32, scale.y as f32), ..Default::default() })?;
             },
             SpriteMode::Repeat(size) => {
-                let scale = camera.calculate_dest_scale(Point2::new(size.x as f32 / image.width() as f32, size.y as f32 / image.height() as f32));
+                let scale = camera.calculate_dest_scale(Point2::new(size.x as f64 / image.width() as f64, size.y as f64 / image.height() as f64));
 
                 let mut batch = SpriteBatch::new(image);
 
@@ -60,7 +60,7 @@ impl Sprite {
 
                 for x in 0..rows {
                     for y in 0..cols {
-                        let pos_in_screen = camera.world_to_screen_coords(Point2::new(rect.pos.x + (x * size.x) as f32, rect.pos.y + (y * size.y) as f32 + size.y as f32));
+                        let pos_in_screen = camera.world_to_screen_coords(Point2::new(rect.pos.x + (x * size.x) as f64, rect.pos.y + (y * size.y) as f64 + size.y as f64));
 
                         batch.add(DrawParam {
                             dest: Point2::new(pos_in_screen.x as f32, pos_in_screen.y as f32),
