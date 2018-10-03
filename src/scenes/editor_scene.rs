@@ -147,7 +147,7 @@ impl<'a, 'b> EditorScene<'a, 'b> {
                 .with(ActionSystem, "action_system", &["input_manager"])
         });
 
-        let camera = Camera::new(screen_size, 1.);
+        let camera = Camera::new(screen_size, Vector2::new(constants::CAMERA_VIEW_SIZE.0, constants::CAMERA_VIEW_SIZE.1), 1.);
 
         EditorScene { level, input_manager, resources_manager, camera, mode: EditorMode::Default, imgui_helper: ImGuiMemoryHelper::new(), is_ui_hover: false }
     }
@@ -164,10 +164,10 @@ impl<'a, 'b> EditorScene<'a, 'b> {
                 }
             }
 
-            Self::create_entity(world, Point2::new(0., 200.), Vector2::new(100, 100), SpriteMode::Stretch, true);
+            //Self::create_entity(world, Point2::new(0., 200.), Vector2::new(100, 100), SpriteMode::Stretch, true);
         });
 
-        let camera = Camera::new(screen_size, 1.);
+        let camera = Camera::new(screen_size, Vector2::new(constants::CAMERA_VIEW_SIZE.0, constants::CAMERA_VIEW_SIZE.1), 1.);
 
         EditorScene { level, input_manager, resources_manager, camera, mode: EditorMode::Default, imgui_helper: ImGuiMemoryHelper::new(), is_ui_hover: false }
     }
@@ -209,10 +209,10 @@ impl<'a, 'b> EditorScene<'a, 'b> {
         let active_marker = self.level.get_world().read_storage::<ActiveChunkMarker>();
         let mouse_pos = input_manager.get_mouse_pos();
 
-        let mouse_pos_in_world = self.camera.screen_to_world_coords(mouse_pos);
+        let mouse_pos_in_world = self.camera.screen_point_to_world(&Point2::new(mouse_pos.x as f64, mouse_pos.y as f64));
 
         for (ent, rect, _) in (&*entities, &rect_storage, &active_marker).join() {
-            if rect.get_rect().contains(mouse_pos_in_world) {
+            if rect.get_rect().contains_pt(&mouse_pos_in_world) {
                 return Some(ent);
             }
         }
@@ -259,11 +259,11 @@ impl<'a, 'b> EditorScene<'a, 'b> {
             }
 
             if let Some(_jp) = input_manager.is_key_pressed(&Keycode::P) {
-                self.camera.zoom_by(0.001, chunks_bounds);
+                self.camera.zoom_by(0.01, chunks_bounds);
             }
 
             if let Some(_jp) = input_manager.is_key_pressed(&Keycode::M) {
-                self.camera.zoom_by(-0.001, chunks_bounds);
+                self.camera.zoom_by(-0.01, chunks_bounds);
             }
         }
     }
@@ -275,10 +275,9 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
             let input_manager = self.input_manager.lock().unwrap();
 
             let mouse_pos = input_manager.get_mouse_pos();
-            let mouse_in_world = self.camera.screen_to_world_coords(mouse_pos);
+            let mouse_in_world = self.camera.screen_point_to_world(&Point2::new(mouse_pos.x as f64, mouse_pos.y as f64));
             let delta_mouse = input_manager.get_delta_mouse();
-            let delta_in_world = self.camera.screen_to_world_coords(delta_mouse);
-            let delta_in_world = Point2::new(delta_in_world.x - self.camera.location_zero().x, delta_in_world.y - self.camera.view_size().y - self.camera.location_zero().y);
+            let delta_mouse_in_world = self.camera.screen_size_to_world(&Vector2::new(delta_mouse.x as f64, delta_mouse.y as f64));
 
             if let Some(jp) = input_manager.is_mouse_pressed(&MouseButton::Left) {
                 let next_mode = match self.mode.clone() {
@@ -291,7 +290,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                                     None
                                 }
                             } else {
-                                let start_point = Point2::new(mouse_in_world.x, mouse_in_world.y);
+                                let start_point = Point2::new(mouse_pos.x as f64, mouse_pos.y as f64);
                                 Some(EditorMode::SelectionRectangle(start_point, start_point))
                             }
                         } else {
@@ -299,7 +298,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                         }
                     }
                     EditorMode::SelectionRectangle(p1, _p2) => {
-                        Some(EditorMode::SelectionRectangle(p1, mouse_in_world))
+                        Some(EditorMode::SelectionRectangle(p1, Point2::new(mouse_pos.x as f64, mouse_pos.y as f64)))
                     }
                     EditorMode::Select(entity, other_entities) => {
                         let mut next_mode = None;
@@ -311,8 +310,8 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                                 macro_rules! move_ent {
                                     ($ent:expr) => {
                                       if let Some(rect) = rect_storage.get_mut($ent) {
-                                        let mut move_x = delta_in_world.x;
-                                        let mut move_y = delta_in_world.y;
+                                        let mut move_x = delta_mouse_in_world.x;
+                                        let mut move_y = delta_mouse_in_world.y;
 
                                         let bounds = self.level.get_chunk_sys().get_bounds_chunks();
 
@@ -402,7 +401,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                     let p1 = Point2::new(p1.x as i32, p1.y as i32);
                     let p2 = Point2::new(p2.x as i32, p2.y as i32);
 
-                    let entities = self.get_entities_in_rect(&Rect::from_points(&p1, &p2));
+                    let entities = self.get_entities_in_rect(&self.camera.screen_rect_to_world(&Rect::from_points(&p1, &p2)));
 
                     if entities.is_empty() {
                         self.mode = EditorMode::Default;
@@ -472,7 +471,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
 
     fn draw(&mut self, ctx: &mut Context) -> SceneState {
         let mouse_pos = self.input_manager.lock().unwrap().get_mouse_pos();
-        let mouse_in_world = self.camera.screen_to_world_coords(mouse_pos);
+        let mouse_in_world = self.camera.screen_point_to_world(&Point2::new(mouse_pos.x as f64, mouse_pos.y as f64));
 
         self.level.draw(ctx, &self.camera);
 
@@ -484,7 +483,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
 
                 graphics::set_color(ctx, Color::from_rgba(100, 0, 0, 100))?;
 
-                graphics::rectangle(ctx, graphics::DrawMode::Fill, self.camera.world_rect_to_screen(&Rect::from_points(&p1, &p2)).to_ggez_rect())?;
+                graphics::rectangle(ctx, graphics::DrawMode::Fill, Rect::from_points(&p1, &p2).to_ggez_rect())?;
 
                 graphics::set_color(ctx, Color::from_rgba(255, 255, 255, 255))?;
             }
@@ -655,6 +654,6 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
     fn background_color(&self) -> Color { *self.level.background_color() }
 
     fn resize_event(&mut self, _ctx: &mut Context, screen_size: Vector2<u32>) {
-        //self.camera.set_screen_size(&screen_size);
+        self.camera.update_screen_size(&screen_size);
     }
 }

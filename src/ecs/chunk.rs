@@ -36,9 +36,9 @@ impl ActiveChunksRect {
     }
 
     pub fn update_camera(&mut self, camera: &Camera) {
-        self.move_to(&camera.location_zero());
-        let view_size = &camera.view_size();
-        self.rect.resize_to(&Vector2::new(view_size.x as u32, view_size.y as u32));
+        let camera_view = camera.world_view();
+        self.move_to(&camera_view.pos);
+        self.rect.resize_to(&camera_view.size);
     }
 
     pub fn update_dirty(&mut self) -> bool {

@@ -162,12 +162,11 @@ impl<'a, 'b> Level<'a, 'b> {
 
         }
 
-        let x = camera.world_to_screen_coords(active_rect_chunk.pos);
-        let size = camera.calculate_dest_scale(Point2::new(active_rect_chunk.size.x as f64, active_rect_chunk.size.y as f64));
+        let rect_in_screen = camera.world_rect_to_screen(&active_rect_chunk);
 
         graphics::set_color(ctx, (100, 0, 200, 255).into()).unwrap();
 
-        graphics::rectangle(ctx, graphics::DrawMode::Line(1.), graphics::Rect::new(x.x as f32, x.y as f32, size.x as f32, -size.y as f32)).unwrap();
+        graphics::rectangle(ctx, graphics::DrawMode::Line(1.), rect_in_screen.to_ggez_rect()).unwrap();
 
         graphics::set_color(ctx, (255, 255, 255, 255).into()).unwrap();
 

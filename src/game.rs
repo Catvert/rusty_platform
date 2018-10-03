@@ -201,6 +201,14 @@ impl Game {
                     ..
                 } => {
                     self.scenes.front_mut().unwrap().resize_event(&mut self.context, Vector2::new(w as u32, h as u32));
+
+                    let new_rect = graphics::Rect::new(
+                        0.0,
+                        0.0,
+                        w as f32,
+                        h as f32,
+                    );
+                    graphics::set_screen_coordinates(&mut self.context, new_rect).unwrap();
                 },
                 _ => {}
             }

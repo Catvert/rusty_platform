@@ -29,7 +29,7 @@
         components: (Some(RectComponent(
             rect: Rect(
                 pos: [
-                    597.7491838955261,
+                    936.7491838955261,
                     521.9649298597196,
                 ],
                 size: [
@@ -66,6 +66,8 @@
             body_type: Dynamic,
             apply_gravity: true,
             next_physics_step: [
+                Jump(50),
+                Jump(50),
                 Jump(50),
                 Jump(50),
                 Jump(50),

@@ -27,6 +27,8 @@ use utils::constants;
 use std::ffi::OsStr;
 use std::path::Path;
 
+use utils::camera::Camera;
+
 pub struct MainScene {
     resources_manager: RefRM,
     input_manager: RefInputManager,
@@ -60,18 +62,18 @@ impl Scene for MainScene {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> SceneState {
-        let screen_size = (ctx.conf.window_mode.width, ctx.conf.window_mode.height);
+        let window_size = ctx.gfx_context.window.drawable_size();
 
         graphics::draw_ex(ctx, &self.background, DrawParam {
             dest: Point2::new(0.0, 0.0),
-            scale: Point2::new(screen_size.0 as f32 / self.background.width() as f32, screen_size.1 as f32 / self.background.height() as f32),
+            scale: Point2::new(window_size.0 as f32 / self.background.width() as f32, window_size.1 as f32 / self.background.height() as f32),
             ..Default::default()
         })?;
 
         let logo_size = Vector2::new(600., 125.);
 
         graphics::draw_ex(ctx, &self.logo, DrawParam {
-            dest: Point2::new(screen_size.0 as f32 / 2. - logo_size.x / 2., 50.),
+            dest: Point2::new(window_size.0 as f32 / 2. - logo_size.x / 2., 50.),
             scale: Point2::new(logo_size.x / self.logo.width() as f32, logo_size.y / self.logo.height() as f32),
             ..Default::default()
         })?;

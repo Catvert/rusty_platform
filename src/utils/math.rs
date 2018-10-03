@@ -35,9 +35,13 @@ impl Rect {
         self.size = *to;
     }
 
-    pub fn contains(&self, point: Point2<f64>) -> bool {
+    pub fn contains_pt(&self, point: &Point2<f64>) -> bool {
         point.x >= self.left() && point.x <= self.right() && point.y <= self.bottom()
             && point.y >= self.top()
+    }
+
+    pub fn contains_rect(&self, rect: &Rect) -> bool {
+        self.left() <= rect.left() && self.right() >= rect.right() && self.top() <= rect.top() && self.bottom() >= rect.bottom()
     }
 
     pub fn overlaps(&self, other: &Rect) -> bool {
