@@ -18,7 +18,7 @@ pub enum Actions {
     PhysicsMove(Vector2<f64>),
     PhysicsJump(u32),
     DeleteEntity,
-    EntityAction(U64Marker, Box<Actions>),
+    EntityAction(Option<U64Marker>, Box<Actions>),
     MultipleActions(Vec<Actions>),
 }
 
@@ -62,9 +62,11 @@ impl<'a> System<'a> for ActionSystem {
                     entities.delete(entity).unwrap();
                 }
                 Actions::EntityAction(u64_marker, action) => {
-                   if let Some(ent) = u64_marker_allocator.retrieve_entity_internal(u64_marker.id()) {
-                       perform_action(ent, action, entities, u64_marker_allocator, rect_storage, phys_storage);
-                   }
+                    if let Some(u64_marker) = u64_marker {
+                        if let Some(ent) = u64_marker_allocator.retrieve_entity_internal(u64_marker.id()) {
+                            perform_action(ent, action, entities, u64_marker_allocator, rect_storage, phys_storage);
+                        }
+                    }
                 }
                 Actions::MultipleActions(actions) => {
                     for action in actions.iter() {

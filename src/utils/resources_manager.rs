@@ -7,6 +7,7 @@ use ggez::graphics::Image;
 use ggez::error::GameError;
 
 use std::path::{Path, PathBuf};
+use imgui::ImTexture;
 
 pub type RefRM = Rc<RefCell<ResourcesManager>>;
 

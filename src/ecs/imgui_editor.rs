@@ -1,3 +1,5 @@
+
+
 use std::collections::HashMap;
 
 use imgui::{Ui, ImString, ImStr};
@@ -8,51 +10,98 @@ use ecs::components_prelude::*;
 use ecs::actions::Actions;
 
 use na::Vector2;
+use ecs::render::SpriteMode;
 
-lazy_static! {
-    static ref ACTIONS_WRAPPERS: HashMap<ActionsWrapper, &'static ImStr> = {
-        let mut wrappers = HashMap::new();
-        wrappers.insert(ActionsWrapper::Empty, im_str!("Vide"));
-        wrappers.insert(ActionsWrapper::Move, im_str!("Déplacement"));
-        wrappers.insert(ActionsWrapper::PhysicsMove, im_str!("Déplacement physique"));
-        wrappers.insert(ActionsWrapper::PhysicsJump, im_str!("Saut physique"));
-        wrappers.insert(ActionsWrapper::DeleteEntity, im_str!("Supprimer l'entité"));
-        wrappers
+trait EnumCombo {
+    type Enum;
+
+    fn draw_ui_combo(mut self, ui: &Ui) -> Self;
+    fn from_wrapper(&self) -> Self::Enum;
+    fn to_enum(&self, e: &Self::Enum) -> Self;
+}
+
+macro_rules! impl_enum_ui_combo_wrapper {
+    ($e:ident, $combo_name:expr; [$ ($wrap_variant:ident => $name:expr; $enum_pattern:pat, $enum_build: expr), *]) => {
+        mashup! {
+            m["wrapper"] = EnumComboWrapper $e;
+            m["wrapper_imstr"] = ENUM_COMBO_WRAPPER_ $e _imstr;
+        }
+
+        m! {
+            #[derive(Eq, PartialEq, Hash, Clone, Debug)]
+            enum "wrapper" {
+                 $($wrap_variant),*
+            }
+        }
+
+        m! {
+            use self::"wrapper"::*;
+        }
+
+        m! {
+            lazy_static! {
+                static ref "wrapper_imstr": HashMap<"wrapper", &'static ImStr> = {
+                    let mut wrappers = HashMap::new();
+                    $(
+                        wrappers.insert($wrap_variant, im_str!($name));
+                    )*
+                    wrappers
+                };
+            }
+        }
+
+        impl EnumCombo for $e {
+            m! {
+                type Enum = "wrapper";
+            }
+
+            fn draw_ui_combo(mut self, ui: &Ui) -> Self {
+                m! {
+                    let mut pos = "wrapper_imstr".iter().position(|aw| *aw.0 == self.from_wrapper()).unwrap() as i32;
+                }
+
+                m! {
+                    let names: Vec<&ImStr> = "wrapper_imstr".iter().map(|c| *c.1).collect();
+                }
+
+                if ui.combo(im_str!($combo_name), &mut pos, &names, 10) {
+                    m! {
+                        self = self.to_enum("wrapper_imstr".iter().nth(pos as usize).unwrap().0);
+                    }
+                }
+
+                self
+            }
+
+            fn from_wrapper(&self) -> Self::Enum {
+                match *self {
+                    $(
+                        $enum_pattern => $wrap_variant
+                    ),*
+                }
+            }
+
+            fn to_enum(&self, e: &Self::Enum) -> Self {
+                match *e {
+                    $(
+                        $wrap_variant => $enum_build
+                    ),*
+                }
+            }
+        }
     };
 }
 
-#[derive(Eq, PartialEq, Hash, Clone, Debug)]
-enum ActionsWrapper {
-    Empty,
-    Move,
-    PhysicsMove,
-    PhysicsJump,
-    DeleteEntity
-}
-
-impl ActionsWrapper {
-    fn get_action(&self) -> Actions {
-        match *self {
-            ActionsWrapper::Empty => { Actions::Empty },
-            ActionsWrapper::Move => { Actions::Move(Vector2::new(0., 0.)) },
-            ActionsWrapper::PhysicsMove => { Actions::PhysicsMove(Vector2::new(0., 0.)) },
-            ActionsWrapper::PhysicsJump => { Actions::PhysicsJump(0) }
-            ActionsWrapper::DeleteEntity => { Actions::DeleteEntity }
-        }
-    }
-
-    fn from_action(action: &Actions) -> Self {
-        match *action {
-            Actions::Empty => { ActionsWrapper::Empty },
-            Actions::Move(_) => { ActionsWrapper::Move },
-            Actions::PhysicsMove(_) => { ActionsWrapper::PhysicsMove },
-            Actions::PhysicsJump(_) => { ActionsWrapper::PhysicsJump }
-            Actions::DeleteEntity => { ActionsWrapper::DeleteEntity }
-            Actions::EntityAction(_, _) => { ActionsWrapper::PhysicsMove },
-            Actions::MultipleActions(_) => { ActionsWrapper::PhysicsMove },
-        }
-    }
-}
+impl_enum_ui_combo_wrapper!(Actions, "action";
+[
+    Empty => "Vide"; Actions::Empty, Actions::Empty,
+    Move => "Déplacement"; Actions::Move(_), Actions::Move(Vector2::new(0., 0.)),
+    PhysicsMove => "Déplacement physique"; Actions::PhysicsMove(_), Actions::PhysicsMove(Vector2::new(0., 0.)),
+    PhysicsJump => "Saut physique"; Actions::PhysicsJump(_), Actions::PhysicsJump(0),
+    DeleteEntity => "Supprimer l'entité"; Actions::DeleteEntity, Actions::DeleteEntity,
+    MultipleActions => "Actions multiple"; Actions::MultipleActions(_), Actions::MultipleActions(vec![]),
+    EntityAction => "Actions sur une entité"; Actions::EntityAction(_, _), Actions::EntityAction(None, Box::new(Actions::Empty))
+]);
 
 fn draw_ui_action(mut action: Actions, popup_id: &ImStr, ui: &Ui) -> Actions {
     if ui.button(im_str!("action"), (100., 0.)) {
@@ -60,38 +109,34 @@ fn draw_ui_action(mut action: Actions, popup_id: &ImStr, ui: &Ui) -> Actions {
     }
 
     ui.popup(popup_id, || {
-        let mut pos = ACTIONS_WRAPPERS.iter().position(|aw| *aw.0 == ActionsWrapper::from_action(&action)).unwrap() as i32;
-        let names: Vec<&ImStr> = ACTIONS_WRAPPERS.iter().map(|c| *c.1).collect();
+        action = action.clone().draw_ui_combo(ui);
 
-        if ui.combo(im_str!("action"), &mut pos, &names, 10) {
-            action = ACTIONS_WRAPPERS.iter().nth(pos as usize).unwrap().0.get_action();
-        }
         match action {
             Actions::Empty => {
                 ui.text("Vide !");
-            },
+            }
             Actions::Move(ref mut mv) => {
                 let mut x = mv.x as f32;
                 let mut y = mv.y as f32;
 
                 if ui.slider_float(im_str!("move x"), &mut x, 0., 100.).build() {
-                    mv.x = y as f64;
+                    mv.x = x as f64;
                 }
                 if ui.slider_float(im_str!("move y"), &mut y, 0., 100.).build() {
-                    mv.y = x as f64;
+                    mv.y = y as f64;
                 }
-            },
+            }
             Actions::PhysicsMove(ref mut mv) => {
                 let mut x = mv.x as f32;
                 let mut y = mv.y as f32;
 
                 if ui.slider_float(im_str!("move x"), &mut x, 0., 100.).build() {
-                    mv.x = y as f64;
+                    mv.x = x as f64;
                 }
                 if ui.slider_float(im_str!("move y"), &mut y, 0., 100.).build() {
-                    mv.y = x as f64;
+                    mv.y = y as f64;
                 }
-            },
+            }
             Actions::PhysicsJump(ref mut height) => {
                 let mut height_i32 = *height as i32;
                 if ui.slider_int(im_str!("height"), &mut height_i32, 0, 100).build() {
@@ -99,8 +144,8 @@ fn draw_ui_action(mut action: Actions, popup_id: &ImStr, ui: &Ui) -> Actions {
                 }
             }
             Actions::DeleteEntity => {}
-            Actions::EntityAction(_, _) => {},
-            Actions::MultipleActions(_) => {},
+            Actions::EntityAction(_, _) => {}
+            Actions::MultipleActions(_) => {}
         }
     });
 
@@ -168,8 +213,10 @@ impl ImGuiEditor for InputComponent {
     }
 }
 
-impl ImGuiEditor for PhysicsComponent {
-    fn draw_ui(&mut self, _ui: &Ui) {
+impl ImGuiEditor for SpriteComponent {
+    fn draw_ui(&mut self, ui: &Ui) {}
+}
 
-    }
+impl ImGuiEditor for PhysicsComponent {
+    fn draw_ui(&mut self, _ui: &Ui) {}
 }

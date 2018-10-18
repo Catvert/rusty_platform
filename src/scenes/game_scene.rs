@@ -32,8 +32,8 @@ pub struct GameScene<'a, 'b> {
 }
 
 impl<'a, 'b> GameScene<'a, 'b> {
-    pub fn new(screen_size: Vector2<u32>, resources_manager: RefRM, input_manager: RefInputManager, level_config: LevelConfig) -> Self {
-        let level = Level::load(level_config, resources_manager, |builder| {
+    pub fn new(ctx: &mut Context, screen_size: Vector2<u32>, input_manager: RefInputManager, level_config: LevelConfig) -> Self {
+        let level = Level::load(ctx, level_config, None, |builder| {
             builder.with(InputSystem { input_manager: input_manager.clone() }, "input_manager", &[])
                 .with(ActionSystem, "action_system", &["input_manager"])
                 .with(PhysicsSystem { gravity: Vector2::new(0., 0.) }, "phys_sys", &["action_system"])

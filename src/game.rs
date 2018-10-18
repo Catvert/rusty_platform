@@ -25,9 +25,9 @@ use na::Vector2;
 
 use scenes::Scene;
 use wrapper::imgui_wrapper::ImGuiWrapper;
-
+use gfx_device_gl;
 use sdl2::EventPump;
-
+use imgui::ImGui;
 
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -58,7 +58,7 @@ impl Default for GameConfig {
 }
 
 pub struct Game {
-    context: Context,
+    ctx: Context,
     imgui_wrapper: ImGuiWrapper,
     scenes: VecDeque<Box<dyn Scene>>,
     input_manager: RefInputManager,
@@ -96,28 +96,36 @@ impl Game {
 
         match ContextBuilder::new("platform_finisher", "finch").window_setup(window_setup).window_mode(window_mode).build() {
             Ok(mut context) => {
-                let imgui_wrapper = ImGuiWrapper::new(&mut context);
+                let mut imgui_wrapper = ImGuiWrapper::new(&mut context);
                 let input_manager = RefInputManager::default();
 
                 let mut scenes: VecDeque<Box<dyn Scene>> = VecDeque::new();
-                scenes.push_back(Box::new(MainScene::new(&mut context, input_manager.clone())));
 
-                Game { context, imgui_wrapper, scenes, input_manager, exit: false }
+                let mut main_scene = Box::new(MainScene::new(&mut context, input_manager.clone()));
+
+                main_scene.init_ui(&mut context, &mut imgui_wrapper);
+
+                scenes.push_back(main_scene);
+
+                Game { ctx: context, imgui_wrapper, scenes, input_manager, exit: false }
             },
             Err(e) => panic!("Impossible d'initialiser le jeu ! Erreur : {}", e)
         }
     }
 
-    fn handle_scene_state(result: SceneState, scenes: &mut VecDeque<Box<dyn Scene>>, exit: &mut bool) {
+    fn handle_scene_state(result: SceneState, ctx: &mut Context, scenes: &mut VecDeque<Box<dyn Scene>>, imgui_wrapper: &mut ImGuiWrapper, exit: &mut bool) {
         if match result {
             Ok(state) => {
                 match state {
                     NextState::Continue => { false },
-                    NextState::Push(scene) => {
+                    NextState::Push(mut scene) => {
+                        scene.init_ui(ctx, imgui_wrapper);
                         scenes.push_front(scene);
                         false
                     },
-                    NextState::Replace(scene) => {
+                    NextState::Replace(mut scene) => {
+                        scene.init_ui(ctx, imgui_wrapper);
+
                         scenes.pop_front();
                         scenes.push_front(scene);
                         false
@@ -140,8 +148,8 @@ impl Game {
         let mut input_manager = self.input_manager.lock().unwrap();
 
         for event in event_pump.poll_iter() {
-            self.context.process_event(&event);
-            self.imgui_wrapper.process_event(&event, &self.context);
+            self.ctx.process_event(&event);
+            self.imgui_wrapper.process_event(&event, &self.ctx);
 
             match event {
                 Quit { .. } => {
@@ -200,7 +208,7 @@ impl Game {
                     win_event: WindowEvent::Resized(w, h),
                     ..
                 } => {
-                    self.scenes.front_mut().unwrap().resize_event(&mut self.context, Vector2::new(w as u32, h as u32));
+                    self.scenes.front_mut().unwrap().resize_event(&mut self.ctx, Vector2::new(w as u32, h as u32));
 
                     let new_rect = graphics::Rect::new(
                         0.0,
@@ -208,7 +216,7 @@ impl Game {
                         w as f32,
                         h as f32,
                     );
-                    graphics::set_screen_coordinates(&mut self.context, new_rect).unwrap();
+                    graphics::set_screen_coordinates(&mut self.ctx, new_rect).unwrap();
                 },
                 _ => {}
             }
@@ -216,44 +224,44 @@ impl Game {
     }
 
     pub fn run(&mut self) {
-        let mut event_pump = self.context.sdl_context.event_pump().expect("Impossible d'obtenir le gestionnaire d'événements !");
+        let mut event_pump = self.ctx.sdl_context.event_pump().expect("Impossible d'obtenir le gestionnaire d'événements !");
 
         while !self.exit {
-            self.context.timer_context.tick();
+            self.ctx.timer_context.tick();
 
             self.process_events(&mut event_pump);
 
-            let Game { ref mut context, ref mut scenes, ref mut imgui_wrapper, ref mut exit, .. } = self;
+            let Game { ref mut ctx, ref mut scenes, ref mut imgui_wrapper, ref mut exit, .. } = self;
 
             {
-                while timer::check_update_time(context, constants::DESIRED_FPS) {
+                while timer::check_update_time(ctx, constants::DESIRED_FPS) {
                     let dt = 1.0 / (constants::DESIRED_FPS as f32);
 
-                    let result = scenes.front_mut().unwrap().update(context, dt);
-                    Self::handle_scene_state(result, scenes, exit);
+                    let result = scenes.front_mut().unwrap().update(ctx, dt);
+                    Self::handle_scene_state(result, ctx,scenes, imgui_wrapper, exit);
 
                     self.input_manager.lock().unwrap().update();
                 }
             }
 
-            graphics::set_background_color(context, scenes.front_mut().unwrap().background_color());
+            graphics::set_background_color(ctx, scenes.front_mut().unwrap().background_color());
 
-            graphics::clear(context);
+            graphics::clear(ctx);
 
             {
-                let result = scenes.front_mut().unwrap().draw(context);
-                Self::handle_scene_state(result, scenes, exit);
+                let result = scenes.front_mut().unwrap().draw(ctx);
+                Self::handle_scene_state(result, ctx, scenes, imgui_wrapper, exit);
             }
 
             {
-                let window_size = context.gfx_context.window.drawable_size();
+                let window_size = ctx.gfx_context.window.drawable_size();
                 let window_size = Vector2::new(window_size.0, window_size.1);
 
-                let result = imgui_wrapper.render_scene_ui(context,scenes.front_mut().unwrap());
-                Self::handle_scene_state(result, scenes, exit);
+                let result = imgui_wrapper.render_scene_ui(ctx,scenes.front_mut().unwrap());
+                Self::handle_scene_state(result, ctx, scenes, imgui_wrapper, exit);
             }
 
-            graphics::present(context);
+            graphics::present(ctx);
         }
     }
 }

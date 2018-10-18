@@ -9,7 +9,7 @@ opt-level = 2
 [dependencies]
 ggez = { git = "https://github.com/Catvert/ggez.git" }
 gfx = "0.17.1"
-gfx_core = "0.8.2"
+gfx_core = "0.8.3"
 gfx_device_gl = "0.15.3"
 sdl2 = "0.31.0"
 
@@ -18,8 +18,8 @@ specs-derive = "0.2.0"
 shrev = "1.0.1"
 shred = { version = "0.7.0" }
 
-serde = "1.0.79"
-serde_derive = "1.0.79"
+serde = "1.0.80"
+serde_derive = "1.0.80"
 ron = "0.4.0"
 
 num = "0.2.0"
@@ -28,10 +28,14 @@ ndarray = "0.12.0"
 
 lazy_static = "1.1.0"
 
-imgui = { version = "0.0.20" }
-imgui-gfx-renderer = { version = "0.0.20" }
-imgui-sys = { version = "0.0.20" }
+imgui = {  git="https://github.com/Gekkio/imgui-rs" }
+imgui-gfx-renderer = { git="https://github.com/Gekkio/imgui-rs" }
+imgui-sys = { git="https://github.com/Gekkio/imgui-rs" }
 
 nfd = "0.0.4"
 
 walkdir = "2"
+
+image = "*"
+
+mashup = "0.1.9"

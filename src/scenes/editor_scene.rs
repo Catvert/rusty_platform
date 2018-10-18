@@ -23,8 +23,7 @@ use ecs::actions::Actions;
 use ecs::physics::PhysicsComponent;
 use ecs::physics::BodyType;
 use specs::saveload::U64Marker;
-use utils::sprite::SpriteMode;
-use utils::sprite::Sprite;
+use ecs::render::{SpriteMode};
 
 use std::collections::HashMap;
 
@@ -45,6 +44,8 @@ use utils::constants;
 use ecs::level::LevelConfig;
 use scenes::main_scene::MainScene;
 use utils::camera::Camera;
+use utils::resources_manager::ResourcesManager;
+use ecs::render::{self, SpriteImage};
 
 lazy_static! {
     static ref COMPONENTS_WRAPPERS: HashMap<ComponentsWrapper, &'static ImStr> = {
@@ -52,6 +53,7 @@ lazy_static! {
         wrappers.insert(ComponentsWrapper::Rect, im_str!("Rectangle"));
         wrappers.insert(ComponentsWrapper::Input, im_str!("Entrée"));
         wrappers.insert(ComponentsWrapper::Physics, im_str!("Physique"));
+        wrappers.insert(ComponentsWrapper::Sprite, im_str!("Sprite"));
         wrappers
     };
 }
@@ -60,7 +62,8 @@ lazy_static! {
 enum ComponentsWrapper {
     Rect,
     Input,
-    Physics
+    Physics,
+    Sprite
 }
 
 macro_rules! impl_components_wrapper {
@@ -101,7 +104,12 @@ macro_rules! impl_components_wrapper {
     }
 }
 
-impl_components_wrapper!([ComponentsWrapper::Rect => RectComponent, ComponentsWrapper::Input => InputComponent, ComponentsWrapper::Physics => PhysicsComponent]);
+impl_components_wrapper!([
+    ComponentsWrapper::Rect => RectComponent,
+    ComponentsWrapper::Input => InputComponent,
+    ComponentsWrapper::Physics => PhysicsComponent,
+    ComponentsWrapper::Sprite => SpriteComponent
+]);
 
 struct ImGuiMemoryHelper {
     pub select_entity_view_show_window: bool,
@@ -132,7 +140,6 @@ enum EditorMode {
 pub struct EditorScene<'a, 'b> {
     level: Level<'a, 'b>,
     input_manager: RefInputManager,
-    resources_manager: RefRM,
     camera: Camera,
     mode: EditorMode,
     imgui_helper: ImGuiMemoryHelper,
@@ -140,8 +147,8 @@ pub struct EditorScene<'a, 'b> {
 }
 
 impl<'a, 'b> EditorScene<'a, 'b> {
-    pub fn load_level(screen_size: Vector2<u32>, resources_manager: RefRM, input_manager: RefInputManager, config: LevelConfig) -> Self {
-        let level = Level::load(config, resources_manager.clone(), |builder| {
+    pub fn load_level(ctx: &mut Context, screen_size: Vector2<u32>, resources_manager: Option<ResourcesManager>, input_manager: RefInputManager, config: LevelConfig) -> Self {
+        let level = Level::load(ctx, config, resources_manager, |builder| {
             builder
                 .with(InputSystem { input_manager: input_manager.clone() }, "input_manager", &[])
                 .with(ActionSystem, "action_system", &["input_manager"])
@@ -149,11 +156,11 @@ impl<'a, 'b> EditorScene<'a, 'b> {
 
         let camera = Camera::new(screen_size, Vector2::new(constants::CAMERA_VIEW_SIZE.0, constants::CAMERA_VIEW_SIZE.1), 1.);
 
-        EditorScene { level, input_manager, resources_manager, camera, mode: EditorMode::Default, imgui_helper: ImGuiMemoryHelper::new(), is_ui_hover: false }
+        EditorScene { level, input_manager, camera, mode: EditorMode::Default, imgui_helper: ImGuiMemoryHelper::new(), is_ui_hover: false }
     }
 
-    pub fn new_level(screen_size: Vector2<u32>, resources_manager: RefRM, input_manager: RefInputManager, name: String) -> Self {
-        let level = Level::new(String::from("finch"), name, resources_manager.clone(), |builder| {
+    pub fn new_level(ctx: &mut Context, screen_size: Vector2<u32>, input_manager: RefInputManager, name: String) -> Self {
+        let level = Level::new(ctx, String::from("finch"), name, |builder| {
             builder
                 .with(InputSystem { input_manager: input_manager.clone() }, "input_manager", &[])
                 .with(ActionSystem, "action_system", &["input_manager"])
@@ -169,12 +176,12 @@ impl<'a, 'b> EditorScene<'a, 'b> {
 
         let camera = Camera::new(screen_size, Vector2::new(constants::CAMERA_VIEW_SIZE.0, constants::CAMERA_VIEW_SIZE.1), 1.);
 
-        EditorScene { level, input_manager, resources_manager, camera, mode: EditorMode::Default, imgui_helper: ImGuiMemoryHelper::new(), is_ui_hover: false }
+        EditorScene { level, input_manager, camera, mode: EditorMode::Default, imgui_helper: ImGuiMemoryHelper::new(), is_ui_hover: false }
     }
 
     fn create_entity(world: &mut World, pos: Point2<f64>, size: Vector2<u32>, mode: SpriteMode, add_input: bool) {
         let mut builder = world.create_entity()
-            .with(SpriteComponent::new(Sprite::new(Path::new("/finch_square.jpg").to_owned(), mode)))
+            .with(SpriteComponent::new(Some(SpriteImage::new_unloaded(Path::new("/finch_square.jpg").to_owned())), mode))
             .with(RectComponent::new((pos, size).into()));
 
         if add_input {
@@ -520,19 +527,23 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                     let select_rect_placed = Rect::from(Point2::new(mouse_in_world.x - size.x as f64 / 2., mouse_in_world.y - size.y as f64 / 2.), size);
 
                     if let Some(spr) = sprite_storage.get_mut(entity) {
-                        spr.draw(ctx, &select_rect_placed, &self.camera, &self.resources_manager);
+                        if let Some(ref image) = spr.image {
+                            render::draw_sprite(ctx, &self.camera, image,&select_rect_placed, &spr.mode);
+                        }
                     }
 
                     if let Some(other_entities) = other_entities {
                         for other_ent in other_entities.iter() {
                             if let Some(other_rect) = rect_storage.get(*other_ent) {
                                 if let Some(spr) = sprite_storage.get_mut(*other_ent) {
-                                    let delta_x = select_rect.get_rect().pos.x - other_rect.get_rect().pos.x;
-                                    let delta_y = select_rect.get_rect().pos.y - other_rect.get_rect().pos.y;
+                                    if let Some(ref image) = spr.image {
+                                        let delta_x = select_rect.get_rect().pos.x - other_rect.get_rect().pos.x;
+                                        let delta_y = select_rect.get_rect().pos.y - other_rect.get_rect().pos.y;
 
-                                    let rect = Rect::from(Point2::new(select_rect_placed.pos.x - delta_x, select_rect_placed.pos.y - delta_y), other_rect.get_rect().size);
+                                        let rect = Rect::from(Point2::new(select_rect_placed.pos.x - delta_x, select_rect_placed.pos.y - delta_y), other_rect.get_rect().size);
 
-                                    spr.draw(ctx, &rect, &self.camera, &self.resources_manager);
+                                        render::draw_sprite(ctx, &self.camera, image,&select_rect_placed, &spr.mode);
+                                    }
                                 }
                             }
                         }

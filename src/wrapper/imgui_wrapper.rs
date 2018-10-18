@@ -19,6 +19,9 @@ use std::time::Instant;
 use scenes::Scene;
 use na::Vector2;
 use scenes::SceneState;
+use imgui::ImTexture;
+
+use imgui_gfx_renderer::Texture;
 
 const IMGUI_TAB: u8 = 0;
 const IMGUI_LEFT_ARROW: u8 = 1;
@@ -64,8 +67,8 @@ pub enum ImGuiFonts {
 }
 
 pub struct ImGuiWrapper {
-    imgui: ImGui,
-    renderer: Renderer<gfx_device_gl::Resources>,
+    pub imgui: ImGui,
+    pub renderer: Renderer<gfx_device_gl::Resources>,
     last_frame: Instant,
     mouse_state: MouseState
 }
@@ -224,6 +227,10 @@ impl ImGuiWrapper {
             }
             _ => {}
         }
+    }
+
+    pub fn load_texture(&mut self, texture: Texture<gfx_device_gl::Resources>) -> ImTexture {
+        self.renderer.textures().insert(texture)
     }
 
     fn configure_keys(imgui: &mut ImGui) {

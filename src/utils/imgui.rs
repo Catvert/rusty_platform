@@ -5,6 +5,11 @@ use std::os::raw::c_char;
 use std::ffi::CString;
 use std;
 
+use ggez::graphics;
+use imgui_gfx_renderer;
+use gfx;
+use gfx_device_gl;
+
 fn get_c_char(s: &str) -> *const c_char {
     let s = CString::new(s.as_bytes()).unwrap();
     let p = s.as_ptr();
@@ -28,5 +33,22 @@ impl<'p> ImGuiExtensions<'p> for Ui<'p> {
                 height_in_items,
             )
         }
+    }
+}
+
+
+pub trait ToImGuiTex<R: gfx::Resources, F: gfx::Factory<R>> {
+    fn to_imgui_tex(&self, factory: &mut F) -> imgui_gfx_renderer::Texture<R>;
+}
+
+impl ToImGuiTex<gfx_device_gl::Resources, gfx_device_gl::Factory> for graphics::Image {
+    fn to_imgui_tex(&self, factory: &mut gfx_device_gl::Factory) -> (gfx::handle::ShaderResourceView<gfx_device_gl::Resources, [f32; 4]>, gfx::handle::Sampler<gfx_device_gl::Resources>) {
+        use gfx::texture::{SamplerInfo, FilterMethod, WrapMode};
+        use gfx::memory::Typed;
+        use gfx::Factory;
+
+        let sampler = factory.create_sampler(SamplerInfo::new(FilterMethod::Trilinear, WrapMode::Clamp));
+        let shader_view = gfx::handle::ShaderResourceView::new(self.texture.clone());
+        (shader_view, sampler)
     }
 }

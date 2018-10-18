@@ -8,3 +8,4 @@ pub mod chunk;
 pub mod render;
 pub mod rect;
 pub mod imgui_editor;
+pub mod loading;

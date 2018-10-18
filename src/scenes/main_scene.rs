@@ -28,6 +28,8 @@ use std::ffi::OsStr;
 use std::path::Path;
 
 use utils::camera::Camera;
+use wrapper::imgui_wrapper::ImGuiWrapper;
+use imgui::ImTexture;
 
 pub struct MainScene {
     resources_manager: RefRM,
@@ -108,18 +110,18 @@ impl Scene for MainScene {
 
                 if ui.button(im_str!("Jouer"), (-1., 0.)) {
                     if let Some(config) = levels.iter().nth(*levels_window_select_level as usize) {
-                        result = NextState::Replace(Box::new(GameScene::new(window_size.clone(), resources_manager.clone(), input_manager.clone(), config.clone())));
+                        result = NextState::Replace(Box::new(GameScene::new(ctx, window_size.clone(), input_manager.clone(), config.clone())));
                     }
                 }
 
                 if ui.button(im_str!("Éditer"), (-1., 0.)) {
                     if let Some(config) = levels.iter().nth(*levels_window_select_level as usize) {
-                        result = NextState::Replace(Box::new(EditorScene::load_level(window_size.clone(), resources_manager.clone(), input_manager.clone(), config.clone())));
+                        result = NextState::Replace(Box::new(EditorScene::load_level(ctx,window_size.clone(), None, input_manager.clone(), config.clone())));
                     }
                 }
 
                 if ui.button(im_str!("Nouveau"), (-1., 0.)) {
-                    result = NextState::Replace(Box::new(EditorScene::new_level(window_size.clone(),resources_manager.clone(), input_manager.clone(), String::from("test"))))
+                    result = NextState::Replace(Box::new(EditorScene::new_level(ctx, window_size.clone(), input_manager.clone(), String::from("test"))))
                 }
             });
         }

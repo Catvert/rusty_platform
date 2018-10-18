@@ -1,4 +1,5 @@
 //! The simplest possible example that does something.
+#![recursion_limit="1024"]
 
 extern crate ggez;
 extern crate gfx;
@@ -14,7 +15,7 @@ extern crate serde;
 extern crate serde_derive;
 
 extern crate shrev;
-
+extern crate image;
 extern crate num;
 extern crate nalgebra as na;
 extern crate ndarray;
@@ -34,6 +35,9 @@ extern crate imgui_gfx_renderer;
 extern crate nfd;
 
 extern crate walkdir;
+
+#[macro_use]
+extern crate mashup;
 
 mod wrapper;
 mod ecs;

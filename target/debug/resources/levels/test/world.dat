@@ -8,72 +8,19 @@
                     0,
                 ],
                 size: [
-                    2543,
+                    100,
                     100,
                 ],
             ),
         )), Some(SpriteComponent(
-            sprite: Sprite(
+            image: Some(SpriteImage(
                 path: "/finch_square.jpg",
-                mode: Stretch,
-            ),
+            )),
+            mode: Stretch,
         )), None, Some(PhysicsComponent(
             body_type: Dynamic,
             apply_gravity: true,
             next_physics_step: [
-            ],
-        ))),
-    ),
-    EntityData(
-        marker: U64Marker(1),
-        components: (Some(RectComponent(
-            rect: Rect(
-                pos: [
-                    936.7491838955261,
-                    521.9649298597196,
-                ],
-                size: [
-                    100,
-                    100,
-                ],
-            ),
-        )), Some(SpriteComponent(
-            sprite: Sprite(
-                path: "/finch_square.jpg",
-                mode: Stretch,
-            ),
-        )), Some(InputComponent(
-            input_actions: [
-                (113, false, PhysicsMove([
-                    -10,
-                    0,
-                ])),
-                (122, false, PhysicsMove([
-                    0,
-                    10,
-                ])),
-                (115, false, PhysicsMove([
-                    0,
-                    -10,
-                ])),
-                (100, false, PhysicsMove([
-                    10,
-                    0,
-                ])),
-                (32, true, PhysicsJump(50)),
-            ],
-        )), Some(PhysicsComponent(
-            body_type: Dynamic,
-            apply_gravity: true,
-            next_physics_step: [
-                Jump(50),
-                Jump(50),
-                Jump(50),
-                Jump(50),
-                Jump(50),
-                Jump(50),
-                Jump(50),
-                Jump(50),
             ],
         ))),
     ),

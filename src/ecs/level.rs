@@ -32,6 +32,9 @@ use utils::constants;
 use ron;
 use std::io::Write;
 use std::io::Read;
+use utils::resources_manager::ResourcesManager;
+use ecs::render::RenderSystem;
+use ecs::loading::LoadingResourcesSystem;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum Background {
@@ -77,23 +80,31 @@ pub struct Level<'a, 'b> {
     world: World,
     dispatcher: Dispatcher<'a, 'b>,
     chunk_sys: ChunkSystem,
-    resources_manager: RefRM,
+    resources_manager: ResourcesManager,
     blend_mode: Option<BlendMode>
 }
 
 impl<'a, 'b> Level<'a, 'b> {
-    pub fn load<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>>(config: LevelConfig, resources_manager: RefRM, build_dispatcher: F) -> Self {
+    pub fn load<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>>(ctx: &mut Context, config: LevelConfig, resources_manager: Option<ResourcesManager>, build_dispatcher: F) -> Self {
         let (world, dispatcher, chunk_sys) = Self::build_default_world(build_dispatcher);
 
+        let mut resources_manager = resources_manager.unwrap_or_default();
+
         DeserializeSystem { reader: File::open(&config.world_data_path()).unwrap()  }.run_now(&world.res);
+
+        LoadingResourcesSystem { ctx, resources_manager: &mut resources_manager }.run_now(&world.res);
 
         Level { config, world, dispatcher, chunk_sys, resources_manager, blend_mode: None }
     }
 
-    pub fn new<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>, W: FnMut(&mut World) -> ()>(author: String, name: String, resources_manager: RefRM, build_dispatcher: F, mut populate_world: W) -> Self {
+    pub fn new<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>, W: FnMut(&mut World) -> ()>(ctx: &mut Context, author: String, name: String, build_dispatcher: F, mut populate_world: W) -> Self {
         let (mut world, dispatcher, chunk_sys) = Self::build_default_world(build_dispatcher);
 
+        let mut resources_manager = ResourcesManager::default();
+
         populate_world(&mut world);
+
+        LoadingResourcesSystem { ctx, resources_manager: &mut resources_manager }.run_now(&world.res);
 
         let dir = constants::path::LEVELS_DIR.join(Path::new(&name));
 
@@ -153,9 +164,6 @@ impl<'a, 'b> Level<'a, 'b> {
     }
 
     pub fn draw(&self, ctx: &mut Context, camera: &Camera) {
-        let rects = self.world.write_storage::<RectComponent>();
-        let mut sprites = self.world.write_storage::<SpriteComponent>();
-        let active_chunk = self.world.write_storage::<ActiveChunkMarker>();
         let active_rect_chunk = self.world.read_resource::<ActiveChunksRect>().get_rect().clone();
 
         if let Background::Texture(ref _path, ref _col) = self.config.background {
@@ -170,10 +178,7 @@ impl<'a, 'b> Level<'a, 'b> {
 
         graphics::set_color(ctx, (255, 255, 255, 255).into()).unwrap();
 
-        for (rect, mut spr, _) in (&rects, &mut sprites, &active_chunk).join() {
-            spr.draw(ctx, &rect.get_rect(), camera, &self.resources_manager);
-        }
-
+        RenderSystem { ctx, camera }.run_now(&self.world.res);
     }
 
     pub fn save(&self) {
