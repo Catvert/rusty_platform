@@ -12,35 +12,25 @@ use ecs::actions::Actions;
 use na::Vector2;
 use ecs::render::SpriteMode;
 
-trait EnumCombo {
-    type Enum;
+trait EnumCombo where Self: Sized {
+    type Wrapper;
 
-    fn draw_ui_combo(mut self, ui: &Ui) -> Self;
-    fn from_wrapper(&self) -> Self::Enum;
-    fn to_enum(&self, e: &Self::Enum) -> Self;
+    fn draw_ui_combo(&mut self, ui: &Ui) -> Option<Self>;
+    fn to_wrapper(&self) -> Self::Wrapper;
+    fn to_enum(&self, w: &Self::Wrapper) -> Self;
 }
 
+
 macro_rules! impl_enum_ui_combo_wrapper {
-    ($e:ident, $combo_name:expr; [$ ($wrap_variant:ident => $name:expr; $enum_pattern:pat, $enum_build: expr), *]) => {
-        mashup! {
-            m["wrapper"] = EnumComboWrapper $e;
-            m["wrapper_imstr"] = ENUM_COMBO_WRAPPER_ $e _imstr;
+    ($wrapper: ident, $wrapper_imstr: ident, $e:ident, $combo_name:expr; [$ ($wrap_variant:ident => $name:expr; $enum_pattern:pat, $enum_build: expr), *]) => {
+        #[derive(Eq, PartialEq, Hash, Clone, Debug)]
+        enum $wrapper {
+            $($wrap_variant),*
         }
 
-        m! {
-            #[derive(Eq, PartialEq, Hash, Clone, Debug)]
-            enum "wrapper" {
-                 $($wrap_variant),*
-            }
-        }
-
-        m! {
-            use self::"wrapper"::*;
-        }
-
-        m! {
+       use self::$wrapper::*;
             lazy_static! {
-                static ref "wrapper_imstr": HashMap<"wrapper", &'static ImStr> = {
+                static ref $wrapper_imstr: HashMap<$wrapper, &'static ImStr> = {
                     let mut wrappers = HashMap::new();
                     $(
                         wrappers.insert($wrap_variant, im_str!($name));
@@ -48,32 +38,26 @@ macro_rules! impl_enum_ui_combo_wrapper {
                     wrappers
                 };
             }
-        }
+
 
         impl EnumCombo for $e {
-            m! {
-                type Enum = "wrapper";
-            }
+            type Wrapper = $wrapper;
 
-            fn draw_ui_combo(mut self, ui: &Ui) -> Self {
-                m! {
-                    let mut pos = "wrapper_imstr".iter().position(|aw| *aw.0 == self.from_wrapper()).unwrap() as i32;
-                }
+            fn draw_ui_combo(&mut self, ui: &Ui) -> Option<Self> {
+                let mut pos = $wrapper_imstr.iter().position(|aw| *aw.0 == self.to_wrapper()).unwrap() as i32;
 
-                m! {
-                    let names: Vec<&ImStr> = "wrapper_imstr".iter().map(|c| *c.1).collect();
-                }
+                let names: Vec<&ImStr> =  $wrapper_imstr.iter().map(|c| *c.1).collect();
 
                 if ui.combo(im_str!($combo_name), &mut pos, &names, 10) {
-                    m! {
-                        self = self.to_enum("wrapper_imstr".iter().nth(pos as usize).unwrap().0);
-                    }
+
+                        return Some(self.to_enum($wrapper_imstr.iter().nth(pos as usize).unwrap().0));
+
                 }
 
-                self
+                None
             }
 
-            fn from_wrapper(&self) -> Self::Enum {
+            fn to_wrapper(&self) -> Self::Wrapper {
                 match *self {
                     $(
                         $enum_pattern => $wrap_variant
@@ -81,8 +65,8 @@ macro_rules! impl_enum_ui_combo_wrapper {
                 }
             }
 
-            fn to_enum(&self, e: &Self::Enum) -> Self {
-                match *e {
+            fn to_enum(&self, w: &Self::Wrapper) -> Self {
+                match *w {
                     $(
                         $wrap_variant => $enum_build
                     ),*
@@ -92,7 +76,8 @@ macro_rules! impl_enum_ui_combo_wrapper {
     };
 }
 
-impl_enum_ui_combo_wrapper!(Actions, "action";
+
+impl_enum_ui_combo_wrapper!(ActionsWrapperMod, ActionsWrapperImStr, Actions, "action";
 [
     Empty => "Vide"; Actions::Empty, Actions::Empty,
     Move => "Déplacement"; Actions::Move(_), Actions::Move(Vector2::new(0., 0.)),
@@ -109,7 +94,9 @@ fn draw_ui_action(mut action: Actions, popup_id: &ImStr, ui: &Ui) -> Actions {
     }
 
     ui.popup(popup_id, || {
-        action = action.clone().draw_ui_combo(ui);
+        if let Some(a) = action.draw_ui_combo(ui) {
+            action = a;
+        }
 
         match action {
             Actions::Empty => {
@@ -213,8 +200,18 @@ impl ImGuiEditor for InputComponent {
     }
 }
 
+impl_enum_ui_combo_wrapper!(SpriteModeWrapper, SpriteModeStr, SpriteMode, "mode"; [
+    Stretch => "Remplir"; SpriteMode::Stretch, SpriteMode::Stretch,
+    Repeat => "Répéter"; SpriteMode::Repeat(_), SpriteMode::Repeat(Vector2::new(1, 1))
+]);
+
+
 impl ImGuiEditor for SpriteComponent {
-    fn draw_ui(&mut self, ui: &Ui) {}
+    fn draw_ui(&mut self, ui: &Ui) {
+        if let Some(m) = self.mode.draw_ui_combo(ui) {
+            self.mode = m;
+        }
+    }
 }
 
 impl ImGuiEditor for PhysicsComponent {
