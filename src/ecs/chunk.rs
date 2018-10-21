@@ -180,7 +180,9 @@ impl ChunkSystem {
             self.chunks.get_mut(chunk).unwrap().retain(|e| *e != ent);
         }
 
-        active_storage.remove(ent).unwrap();
+        if active_storage.contains(ent) {
+            active_storage.remove(ent).unwrap();
+        }
     }
 
     fn update_entity_chunks<'a>(&mut self, ent: Entity, chunk_comp: &mut ChunkComponent, rect: &Rect, active_storage: &mut WriteStorage<'a, ActiveChunkMarker>, active_rect: &ActiveChunksRect) {

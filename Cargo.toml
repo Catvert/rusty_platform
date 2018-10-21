@@ -38,4 +38,4 @@ walkdir = "2"
 
 image = "*"
 
-mashup = "0.1.9"
+interpolation = "0.1.0"

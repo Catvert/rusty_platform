@@ -22,6 +22,8 @@ use ecs::rect::RectComponent;
 use ecs::actions::*;
 use ecs::chunk::ChunkSystem;
 
+use ecs;
+
 use serde;
 
 use utils::serde::ColorDef;
@@ -118,24 +120,8 @@ impl<'a, 'b> Level<'a, 'b> {
        Level { config, world, dispatcher, chunk_sys, resources_manager, blend_mode: None }
     }
 
-    pub fn get_world(&self) -> &World { &self.world }
-    pub fn get_world_mut(&mut self) -> &mut World { &mut self.world }
-
-    pub fn get_chunk_sys(&self) -> &ChunkSystem { &self.chunk_sys }
-
-    fn build_default_world<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>>(mut build_dispatcher: F) -> (World, Dispatcher<'a, 'b>, ChunkSystem) {
-        let mut world = World::new();
-        world.register::<RectComponent>();
-        world.register::<SpriteComponent>();
-        world.register::<InputComponent>();
-        world.register::<ActionComponent>();
-        world.register::<PhysicsComponent>();
-        world.register::<ChunkComponent>();
-        world.register::<ActiveChunkMarker>();
-        world.register::<U64Marker>();
-
-        world.add_resource(U64MarkerAllocator::new());
-        world.add_resource(ActiveChunksRect::new(Rect::new(0., 0., 1000, 1000), 1.5));
+    pub fn clone<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>>(&self, mut build_dispatcher: F) -> Self {
+        let (mut world, chunk_sys) = ecs::copy_world(&self.world);
 
         let dispatcher_builder = DispatcherBuilder::new();
 
@@ -143,8 +129,29 @@ impl<'a, 'b> Level<'a, 'b> {
 
         dispatcher.setup(&mut world.res);
 
-        let mut chunk_sys = ChunkSystem::new((20, 5), Rect::new(0., 0., 1280, 720));
-        chunk_sys.setup(&mut world.res);
+        Level {
+            config: self.config.clone(),
+            world,
+            dispatcher,
+            chunk_sys,
+            resources_manager: self.resources_manager.clone(),
+            blend_mode: self.blend_mode.clone()
+        }
+    }
+
+    pub fn get_world(&self) -> &World { &self.world }
+    pub fn get_world_mut(&mut self) -> &mut World { &mut self.world }
+
+    pub fn get_chunk_sys(&self) -> &ChunkSystem { &self.chunk_sys }
+
+    fn build_default_world<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>>(mut build_dispatcher: F) -> (World, Dispatcher<'a, 'b>, ChunkSystem) {
+        let (mut world, chunk_sys) = ecs::create_default_world();
+
+        let dispatcher_builder = DispatcherBuilder::new();
+
+        let mut dispatcher = build_dispatcher(dispatcher_builder).build();
+
+        dispatcher.setup(&mut world.res);
 
         (world, dispatcher, chunk_sys)
     }

@@ -12,6 +12,7 @@ use wrapper::imgui_wrapper::ImGuiWrapper;
 pub mod main_scene;
 pub mod game_scene;
 pub mod editor_scene;
+pub mod editor_try_level_scene;
 
 pub enum NextState {
     Continue,

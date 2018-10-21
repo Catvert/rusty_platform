@@ -2,5 +2,5 @@
     window_size: (1280, 720),
     fullscreen_type: Off,
     borderless: false,
-    vsync: true,
+    vsync: false,
 )

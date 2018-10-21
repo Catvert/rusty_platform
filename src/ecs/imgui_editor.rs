@@ -11,6 +11,10 @@ use ecs::actions::Actions;
 
 use na::Vector2;
 use ecs::render::SpriteMode;
+use std::num::NonZeroU32;
+
+use ecs::physics::BodyType;
+use ecs::physics::JumpData;
 
 trait EnumCombo where Self: Sized {
     type Wrapper;
@@ -106,10 +110,10 @@ fn draw_ui_action(mut action: Actions, popup_id: &ImStr, ui: &Ui) -> Actions {
                 let mut x = mv.x as f32;
                 let mut y = mv.y as f32;
 
-                if ui.slider_float(im_str!("move x"), &mut x, 0., 100.).build() {
+                if ui.slider_float(im_str!("move x"), &mut x, -100., 100.).build() {
                     mv.x = x as f64;
                 }
-                if ui.slider_float(im_str!("move y"), &mut y, 0., 100.).build() {
+                if ui.slider_float(im_str!("move y"), &mut y, -100., 100.).build() {
                     mv.y = y as f64;
                 }
             }
@@ -117,16 +121,16 @@ fn draw_ui_action(mut action: Actions, popup_id: &ImStr, ui: &Ui) -> Actions {
                 let mut x = mv.x as f32;
                 let mut y = mv.y as f32;
 
-                if ui.slider_float(im_str!("move x"), &mut x, 0., 100.).build() {
+                if ui.slider_float(im_str!("move x"), &mut x, -100., 100.).build() {
                     mv.x = x as f64;
                 }
-                if ui.slider_float(im_str!("move y"), &mut y, 0., 100.).build() {
+                if ui.slider_float(im_str!("move y"), &mut y, -100., 100.).build() {
                     mv.y = y as f64;
                 }
             }
             Actions::PhysicsJump(ref mut height) => {
                 let mut height_i32 = *height as i32;
-                if ui.slider_int(im_str!("height"), &mut height_i32, 0, 100).build() {
+                if ui.slider_int(im_str!("height"), &mut height_i32, 0, 1000).build() {
                     *height = height_i32 as u32;
                 }
             }
@@ -200,20 +204,56 @@ impl ImGuiEditor for InputComponent {
     }
 }
 
-impl_enum_ui_combo_wrapper!(SpriteModeWrapper, SpriteModeStr, SpriteMode, "mode"; [
+impl_enum_ui_combo_wrapper!(SpriteModeWrapper, SpriteModeWrapperImStr, SpriteMode, "mode"; [
     Stretch => "Remplir"; SpriteMode::Stretch, SpriteMode::Stretch,
-    Repeat => "Répéter"; SpriteMode::Repeat(_), SpriteMode::Repeat(Vector2::new(1, 1))
+    Repeat => "Répéter"; SpriteMode::Repeat { .. }, SpriteMode::Repeat { x: NonZeroU32::new(1).unwrap(), y: NonZeroU32::new(1).unwrap() }
 ]);
-
 
 impl ImGuiEditor for SpriteComponent {
     fn draw_ui(&mut self, ui: &Ui) {
         if let Some(m) = self.mode.draw_ui_combo(ui) {
             self.mode = m;
         }
+
+        match self.mode {
+            SpriteMode::Stretch => {}
+            SpriteMode::Repeat { ref mut x, ref mut y } => {
+                let mut x_i32 = x.get() as i32;
+                let mut y_i32 = y.get() as i32;
+
+                if ui.drag_int(im_str!("x"), &mut x_i32).build() {
+                    if x_i32 > 0 {
+                        *x = NonZeroU32::new(x_i32 as u32).unwrap();
+                    }
+                }
+                if ui.drag_int(im_str!("y"), &mut y_i32).build() {
+                    if y_i32 > 0 {
+                        *y = NonZeroU32::new(y_i32 as u32).unwrap();
+                    }
+                }
+            },
+        }
     }
 }
 
+
+impl_enum_ui_combo_wrapper!(BodyTypeWrapper, BodyTypeWrapperImStr, BodyType, "type"; [
+    Static => "Statique"; BodyType::Static, BodyType::Static,
+    Dynamic => "Dynamique"; BodyType::Dynamic { .. }, BodyType::Dynamic { apply_gravity: false, jump_data: None }
+]);
+
 impl ImGuiEditor for PhysicsComponent {
-    fn draw_ui(&mut self, _ui: &Ui) {}
+    fn draw_ui(&mut self, ui: &Ui) {
+        if let Some(b_t) = self.body_type.draw_ui_combo(ui) {
+            self.body_type = b_t;
+        }
+
+        match self.body_type {
+            BodyType::Static => {
+            },
+            BodyType::Dynamic { ref mut apply_gravity, ref mut jump_data } => {
+                ui.checkbox(im_str!("Appliquer la gravité"), apply_gravity);
+            },
+        }
+    }
 }

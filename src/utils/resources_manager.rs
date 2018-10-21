@@ -11,6 +11,7 @@ use imgui::ImTexture;
 
 pub type RefRM = Rc<RefCell<ResourcesManager>>;
 
+#[derive(Clone)]
 pub struct ResourcesManager {
     textures: HashMap<PathBuf, Image>
 }

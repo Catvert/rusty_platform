@@ -11,9 +11,29 @@ use ecs::chunk::ActiveChunkMarker;
 use utils::math::Rect;
 use utils::constants;
 
+use std::mem;
+
+#[derive(Debug, Clone)]
+pub struct JumpData {
+    target_height: i32
+}
+
+impl JumpData {
+    fn new(target_height: i32) -> Self {
+        JumpData {
+            target_height
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum BodyType {
-    Static, Dynamic
+    Static,
+    Dynamic {
+        apply_gravity: bool,
+        #[serde(skip)]
+        jump_data: Option<JumpData>,
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -24,14 +44,13 @@ pub enum NextPhysicsStep {
 
 #[derive(Component, Serialize, Deserialize, Clone)]
 pub struct PhysicsComponent {
-    body_type: BodyType,
-    apply_gravity: bool,
+    pub body_type: BodyType,
     next_physics_step: VecDeque<NextPhysicsStep>
 }
 
 impl PhysicsComponent {
-    pub fn new(body_type: BodyType, apply_gravity: bool) -> Self {
-        PhysicsComponent { body_type, apply_gravity, next_physics_step: VecDeque::new() }
+    pub fn new(body_type: BodyType) -> Self {
+        PhysicsComponent { body_type, next_physics_step: VecDeque::new() }
     }
 
     pub fn add_step(&mut self, step: NextPhysicsStep) {
@@ -41,7 +60,7 @@ impl PhysicsComponent {
 
 impl Default for PhysicsComponent {
     fn default() -> Self {
-        PhysicsComponent { body_type: BodyType::Static, apply_gravity: false, next_physics_step: VecDeque::new() }
+        PhysicsComponent { body_type: BodyType::Static, next_physics_step: VecDeque::new() }
     }
 }
 
@@ -94,30 +113,47 @@ impl<'a> System<'a> for PhysicsSystem {
     );
 
     fn run(&mut self, (entities, mut physics, mut rects, active_chunk): Self::SystemData) {
-        let mut container: HashMap<Entity, VecDeque<NextPhysicsStep>> = HashMap::new();
-
         for (ent, physics_comp, _) in (&*entities, &mut physics, &active_chunk).join() {
-            if physics_comp.apply_gravity {
-                physics_comp.next_physics_step.push_back(NextPhysicsStep::Move(self.gravity));
-            }
+            if let BodyType::Dynamic { ref apply_gravity, ref mut jump_data } = physics_comp.body_type {
+                let next_physics_step = &mut physics_comp.next_physics_step;
 
-            while let Some(step) = physics_comp.next_physics_step.pop_front() {
-                let next_steps = container.entry(ent).or_insert(VecDeque::new());
-                next_steps.push_back(step);
-            }
-        }
+                let stop_jump = if let Some(jump_data) = jump_data {
+                    next_physics_step.push_back(NextPhysicsStep::Move(Vector2::new(0., -self.gravity.y)));
 
-        for (entity, steps) in container.iter_mut() {
-            let other_rects: Vec<Rect> = (&*entities, &mut rects, &active_chunk).join().filter(|(e, _r, _)| { e != entity }).map(|(_e, r, _)| { r.get_rect().clone() }).collect();
-            let this_rect = rects.get_mut(*entity).unwrap().get_rect_mut();
+                    if jump_data.target_height >= rects.get_mut(ent).unwrap().get_rect().pos.y as i32 - self.gravity.y as i32 {
+                        true
+                    } else {
+                        false
+                    }
+                } else {
+                    if *apply_gravity {
+                        next_physics_step.push_back(NextPhysicsStep::Move(self.gravity));
+                    }
 
-            while let Some(step) = steps.pop_front() {
-                match step {
-                    NextPhysicsStep::Move(mv) => {
-                        Self::move_rec(this_rect, &other_rects, mv.x, mv.y);
-                    },
-                    NextPhysicsStep::Jump(height) => {
-                        println!("{:?}", Self::check_move_aabb(this_rect, &other_rects, 0., -constants::PHYSICS_EPSILON));
+                    false
+                };
+
+                if stop_jump {
+                    *jump_data = None;
+                }
+
+                if !next_physics_step.is_empty() {
+                    let other_rects: Vec<Rect> = (&*entities, &mut rects, &active_chunk).join().filter(|(e, _r, _)| { *e != ent }).map(|(_e, r, _)| { r.get_rect().clone() }).collect();
+                    let this_rect = rects.get_mut(ent).unwrap().get_rect_mut();
+
+                    while let Some(step) = next_physics_step.pop_front() {
+                        match step {
+                            NextPhysicsStep::Move(mv) => {
+                                Self::move_rec(this_rect, &other_rects, mv.x, mv.y);
+                            },
+                            NextPhysicsStep::Jump(height) => {
+                                if let None = jump_data {
+                                    if !Self::check_move_aabb(this_rect, &other_rects, 0., constants::PHYSICS_EPSILON).1 {
+                                        *jump_data = Some(JumpData::new(this_rect.pos.y as i32 - height as i32));
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

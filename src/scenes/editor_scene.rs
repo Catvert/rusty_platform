@@ -46,6 +46,8 @@ use scenes::main_scene::MainScene;
 use utils::camera::Camera;
 use utils::resources_manager::ResourcesManager;
 use ecs::render::{self, SpriteImage};
+use ecs;
+use scenes::editor_try_level_scene::EditorTryLevelScene;
 
 lazy_static! {
     static ref COMPONENTS_WRAPPERS: HashMap<ComponentsWrapper, &'static ImStr> = {
@@ -193,7 +195,7 @@ impl<'a, 'b> EditorScene<'a, 'b> {
             ]));
         }
 
-        builder.with(PhysicsComponent::new(BodyType::Dynamic, true))
+        builder.with(PhysicsComponent::new(BodyType::Dynamic { apply_gravity: true, jump_data: None }))
             .marked::<U64Marker>()
             .build();
     }
@@ -201,7 +203,7 @@ impl<'a, 'b> EditorScene<'a, 'b> {
     pub fn clone_entity(world: &mut World, ent: Entity, new_pos: Point2<f64>) -> Entity {
         use ecs::serialization;
 
-        let copy_ent = serialization::copy_entity(ent, world);
+        let copy_ent = ecs::copy_entity(ent, world);
 
         if let Some(rect) = world.write_storage::<RectComponent>().get_mut(copy_ent) {
             rect.move_to(&new_pos);
@@ -243,26 +245,28 @@ impl<'a, 'b> EditorScene<'a, 'b> {
         overlaps_entities
     }
 
-    fn update_camera(&mut self) {
+    fn update_camera(&mut self, dt: f32) {
+        let dt = dt as f64;
+
         if !self.is_ui_hover {
             let input_manager = self.input_manager.lock().unwrap();
 
             let chunks_bounds = Some(self.level.get_chunk_sys().get_bounds_chunks());
 
             if let Some(_jp) = input_manager.is_key_pressed(&Keycode::Left) {
-                self.camera.move_by(&Vector2::new(-10., 0.), chunks_bounds);
+                self.camera.move_by(&Vector2::new(-constants::EDITOR_CAMERA_MOVE_SPEED * dt, 0.), chunks_bounds);
             }
 
             if let Some(_jp) = input_manager.is_key_pressed(&Keycode::Right) {
-                self.camera.move_by(&Vector2::new(10., 0.), chunks_bounds);
+                self.camera.move_by(&Vector2::new(constants::EDITOR_CAMERA_MOVE_SPEED * dt, 0.), chunks_bounds);
             }
 
             if let Some(_jp) = input_manager.is_key_pressed(&Keycode::Up) {
-                self.camera.move_by(&Vector2::new(0., 10.), chunks_bounds);
+                self.camera.move_by(&Vector2::new(0., -constants::EDITOR_CAMERA_MOVE_SPEED * dt), chunks_bounds);
             }
 
             if let Some(_jp) = input_manager.is_key_pressed(&Keycode::Down) {
-                self.camera.move_by(&Vector2::new(0., -10.), chunks_bounds);
+                self.camera.move_by(&Vector2::new(0., constants::EDITOR_CAMERA_MOVE_SPEED * dt), chunks_bounds);
             }
 
             if let Some(_jp) = input_manager.is_key_pressed(&Keycode::P) {
@@ -470,7 +474,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
             }
         }
 
-        self.update_camera();
+        self.update_camera(dt);
 
         self.level.update(ctx, &self.camera, dt);
         Ok(NextState::Continue)
@@ -558,7 +562,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
         Ok(NextState::Continue)
     }
 
-    fn draw_ui(&mut self, ctx: &mut Context, _window_size: Vector2<u32>, ui: &Ui) -> SceneState {
+    fn draw_ui(&mut self, ctx: &mut Context, window_size: Vector2<u32>, ui: &Ui) -> SceneState {
         let mut next_state = NextState::Continue;
 
         ui.main_menu_bar(|| {
@@ -597,6 +601,11 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                     }
                 }
             });
+
+            if ui.button(im_str!("Tester"), (100., -1.)) {
+                let try = EditorTryLevelScene::new(window_size.clone(), self.input_manager.clone(), &self.level);
+                next_state = NextState::Replace(Box::new(try));
+            }
 
             ui.text(&format!("{:?}", self.mode));
         });

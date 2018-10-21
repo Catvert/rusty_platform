@@ -8,6 +8,8 @@ use specs::saveload::{U64MarkerAllocator, U64Marker, SerializeComponents, Deseri
 use specs::error::NoError;
 
 use ecs::components_prelude::*;
+use specs::saveload::Marker;
+use specs::saveload::MarkerAllocator;
 
 #[derive(Debug)]
 enum Combined {
@@ -32,33 +34,6 @@ impl From<NoError> for Combined {
     fn from(e: NoError) -> Self {
         match e {}
     }
-}
-
-
-pub fn copy_entity(entity: Entity, world: &mut World) -> Entity {
-    let copy_ent = world.entities().create();
-
-    {
-        let lazy_updater = world.read_resource::<LazyUpdate>();
-
-        macro_rules! add_copy_comp {
-            ($comp:ty) => {
-                match world.read_storage::<$comp>().get(entity) {
-                    Some(c) => lazy_updater.insert(copy_ent.clone(), c.clone()),
-                    None => {}
-                };
-            };
-        }
-
-        add_copy_comp!(RectComponent);
-        add_copy_comp!(SpriteComponent);
-        add_copy_comp!(PhysicsComponent);
-        add_copy_comp!(InputComponent);
-    }
-
-    world.maintain();
-
-    copy_ent
 }
 
 pub struct SerializeSystem<W: io::Write> {

@@ -36,8 +36,7 @@ extern crate nfd;
 
 extern crate walkdir;
 
-#[macro_use]
-extern crate mashup;
+extern crate interpolation;
 
 mod wrapper;
 mod ecs;

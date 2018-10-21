@@ -2,6 +2,7 @@ use na::Vector2;
 use na::Point2;
 use utils::math::Rect;
 use num::clamp;
+use interpolation;
 
 pub struct Camera {
     position: Point2<f64>,

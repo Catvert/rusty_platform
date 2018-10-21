@@ -5,6 +5,8 @@ pub const CHUNK_SIZE: u32 = 500;
 pub const PHYSICS_EPSILON: f64 = 0.2;
 pub const CAMERA_VIEW_SIZE: (u32, u32) = (1920, 1080);
 
+pub const EDITOR_CAMERA_MOVE_SPEED: f64 = 1000.;
+
 // Paths
 
 pub mod path {
