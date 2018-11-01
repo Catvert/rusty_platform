@@ -1,5 +1,3 @@
-
-
 pub const DESIRED_FPS: u32 = 144;
 pub const CHUNK_SIZE: u32 = 500;
 pub const PHYSICS_EPSILON: f64 = 0.2;
@@ -11,6 +9,7 @@ pub const EDITOR_CAMERA_MOVE_SPEED: f64 = 1000.;
 
 pub mod path {
     use std::path::{Path, PathBuf};
+    use lazy_static::lazy_static;
 
     lazy_static! {
         pub static ref RESSOURCES_DIR: PathBuf = Path::new("resources/").to_owned();

@@ -1,10 +1,18 @@
-use na::{self, Point2, Vector2};
+use nalgebra::{
+    self,
+    Point2,
+    Vector2,
+};
 use ggez::graphics;
+use serde::{
+    Serialize,
+    Deserialize,
+};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct Rect {
     pub pos: Point2<f64>,
-    pub size: Vector2<u32>
+    pub size: Vector2<u32>,
 }
 
 impl Rect {
@@ -24,27 +32,27 @@ impl Rect {
         self.pos.y + self.size.y as f64
     }
 
-    pub fn move_by(&mut self, by: &Vector2<f64>) {
+    pub fn move_by(&mut self, by: Vector2<f64>) {
         self.pos += by;
     }
-    pub fn move_to(&mut self, to: &Point2<f64>) {
-        self.pos = *to;
+    pub fn move_to(&mut self, to: Point2<f64>) {
+        self.pos = to;
     }
-    pub fn resize_by(&mut self, by: &Vector2<u32>) { self.size += by; }
-    pub fn resize_to(&mut self, to: &Vector2<u32>) {
-        self.size = *to;
+    pub fn resize_by(&mut self, by: Vector2<u32>) { self.size += by; }
+    pub fn resize_to(&mut self, to: Vector2<u32>) {
+        self.size = to;
     }
 
-    pub fn contains_pt(&self, point: &Point2<f64>) -> bool {
+    pub fn contains_pt(&self, point: Point2<f64>) -> bool {
         point.x >= self.left() && point.x <= self.right() && point.y <= self.bottom()
             && point.y >= self.top()
     }
 
-    pub fn contains_rect(&self, rect: &Rect) -> bool {
+    pub fn contains_rect(&self, rect: Rect) -> bool {
         self.left() <= rect.left() && self.right() >= rect.right() && self.top() <= rect.top() && self.bottom() >= rect.bottom()
     }
 
-    pub fn overlaps(&self, other: &Rect) -> bool {
+    pub fn overlaps(&self, other: Rect) -> bool {
         self.left() <= other.right() && self.right() >= other.left() && self.top() <= other.bottom()
             && self.bottom() >= other.top()
     }
@@ -63,11 +71,11 @@ impl Rect {
         Rect { pos, size }
     }
 
-    pub fn from_points(p1: &Point2<i32>, p2: &Point2<i32>) -> Self {
-        let x = na::min(p1.x, p2.x);
-        let y = na::min(p1.y, p2.y);
-        let w = na::abs(&(p1.x - p2.x)) as u32;
-        let h = na::abs(&(p1.y - p2.y)) as u32;
+    pub fn from_points(p1: Point2<i32>, p2: Point2<i32>) -> Self {
+        let x = nalgebra::min(p1.x, p2.x);
+        let y = nalgebra::min(p1.y, p2.y);
+        let w = nalgebra::abs(&(p1.x - p2.x)) as u32;
+        let h = nalgebra::abs(&(p1.y - p2.y)) as u32;
 
         Rect::new(x as f64, y as f64, w, h)
     }

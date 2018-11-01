@@ -1,14 +1,16 @@
-use imgui::{ImStr, ImString};
-use imgui::Ui;
-use imgui_sys;
-use std::os::raw::c_char;
-use std::ffi::CString;
-use std;
-
-use ggez::graphics;
-use imgui_gfx_renderer;
 use gfx;
 use gfx_device_gl;
+use ggez::graphics;
+use imgui::{
+    ImStr,
+    Ui,
+};
+use imgui_gfx_renderer;
+use imgui_sys;
+use std::{
+    ffi::CString,
+    os::raw::c_char,
+};
 
 fn get_c_char(s: &str) -> *const c_char {
     let s = CString::new(s.as_bytes()).unwrap();
@@ -18,7 +20,7 @@ fn get_c_char(s: &str) -> *const c_char {
 }
 
 pub trait ImGuiExtensions<'p> {
-    fn combo_str(&self,  label: &'p ImStr, current_item: &mut i32, items: &'p [&'p str], height_in_items: i32) -> bool;
+    fn combo_str(&self, label: &'p ImStr, current_item: &mut i32, items: &'p [&'p str], height_in_items: i32) -> bool;
 }
 
 impl<'p> ImGuiExtensions<'p> for Ui<'p> {
@@ -35,7 +37,6 @@ impl<'p> ImGuiExtensions<'p> for Ui<'p> {
         }
     }
 }
-
 
 pub trait ToImGuiTex<R: gfx::Resources, F: gfx::Factory<R>> {
     fn to_imgui_tex(&self, factory: &mut F) -> imgui_gfx_renderer::Texture<R>;

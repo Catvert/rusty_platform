@@ -1,15 +1,24 @@
-use std::io;
-use std::fmt;
-
+use crate::ecs::{
+    inputs::InputComponent,
+    physics::PhysicsComponent,
+    rect::RectComponent,
+    render::SpriteComponent,
+};
 use ron;
-
-use specs::prelude::*;
-use specs::saveload::{U64MarkerAllocator, U64Marker, SerializeComponents, DeserializeComponents};
-use specs::error::NoError;
-
-use ecs::components_prelude::*;
-use specs::saveload::Marker;
-use specs::saveload::MarkerAllocator;
+use specs::{
+    error::NoError,
+    prelude::*,
+    saveload::{
+        DeserializeComponents,
+        SerializeComponents,
+        U64Marker,
+        U64MarkerAllocator,
+    },
+};
+use std::{
+    fmt,
+    io,
+};
 
 #[derive(Debug)]
 enum Combined {

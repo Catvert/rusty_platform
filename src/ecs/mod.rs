@@ -1,26 +1,30 @@
-use specs::World;
-use ecs::rect::RectComponent;
-use ecs::render::SpriteComponent;
-use ecs::inputs::InputComponent;
-use ecs::actions::ActionComponent;
-use ecs::physics::PhysicsComponent;
-use ecs::chunk::ChunkComponent;
-use ecs::chunk::ActiveChunkMarker;
-use specs::saveload::U64Marker;
-use specs::saveload::U64MarkerAllocator;
-use ecs::chunk::ActiveChunksRect;
-use utils::math::Rect;
-use ecs::chunk::ChunkSystem;
-use specs::LazyUpdate;
-use specs::Entity;
-use specs::saveload::Marker;
-use specs::System;
-use specs::Join;
-use specs::saveload::MarkerAllocator;
-use specs::Builder;
+use crate::{
+    ecs::{
+        actions::ActionComponent,
+        chunk::{
+            ActiveChunkMarker,
+            ActiveChunksRect,
+            ChunkComponent,
+            ChunkSystem,
+        },
+        inputs::InputComponent,
+        physics::PhysicsComponent,
+        rect::RectComponent,
+        render::SpriteComponent,
+    },
+    utils::math::Rect,
+};
+use specs::{
+    Builder,
+    Entity,
+    Join,
+    LazyUpdate,
+    saveload::{Marker, MarkerAllocator, U64Marker, U64MarkerAllocator},
+    System,
+    World,
+};
 
 pub mod level;
-pub mod components_prelude;
 pub mod actions;
 pub mod physics;
 pub mod inputs;
@@ -109,9 +113,7 @@ pub fn copy_entity(entity: Entity, world: &mut World) -> Entity {
         add_copy_comp!(SpriteComponent);
         add_copy_comp!(PhysicsComponent);
         add_copy_comp!(InputComponent);
-    }
 
-    {
         let mut alloc = world.write_resource::<<U64Marker as Marker>::Allocator>();
         alloc.mark(copy_ent, &mut world.write_storage::<U64Marker>());
     }

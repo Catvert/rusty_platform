@@ -1,9 +1,11 @@
 use ggez::graphics::Color;
-
-use serde;
+use serde::{
+    Deserialize,
+    Serialize,
+};
 
 #[derive(Serialize, Deserialize)]
-#[serde(remote="Color")]
+#[serde(remote = "Color")]
 pub struct ColorDef {
     /// Red component
     pub r: f32,

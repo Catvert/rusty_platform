@@ -1,47 +1,59 @@
-use std::fs::{self, File};
-
-use ggez::Context;
-use ggez::graphics::{self, BlendMode};
-use ggez::graphics::Color;
-
-use na::{Point2};
-
-use utils::resources_manager::RefRM;
-use utils::camera::Camera;
-use utils::math::Rect;
-
-use specs::{World, DispatcherBuilder, Dispatcher, Join, RunNow};
-use specs::saveload::{U64Marker, U64MarkerAllocator};
-
-use ecs::serialization::{SerializeSystem, DeserializeSystem};
-use ecs::inputs::InputComponent;
-use ecs::physics::{PhysicsComponent};
-use ecs::chunk::{ChunkComponent, ActiveChunkMarker, ActiveChunksRect};
-use ecs::render::SpriteComponent;
-use ecs::rect::RectComponent;
-use ecs::actions::*;
-use ecs::chunk::ChunkSystem;
-
-use ecs;
-
-use serde;
-
-use utils::serde::ColorDef;
-use std::path::{Path, PathBuf};
-
-use utils::constants;
-
+use crate::{
+    ecs::{
+        self,
+        chunk::{
+            ActiveChunksRect,
+            ChunkSystem,
+        },
+        loading::LoadingResourcesSystem,
+        render::RenderSystem,
+        serialization::{
+            DeserializeSystem,
+            SerializeSystem,
+        },
+    },
+    utils::{
+        camera::Camera,
+        constants,
+        resources_manager::ResourcesManager,
+        serde::ColorDef,
+    },
+};
+use ggez::{
+    Context,
+    graphics::{
+        self,
+        BlendMode,
+        Color,
+    },
+};
 use ron;
-use std::io::Write;
-use std::io::Read;
-use utils::resources_manager::ResourcesManager;
-use ecs::render::RenderSystem;
-use ecs::loading::LoadingResourcesSystem;
+use serde::{
+    Deserialize,
+    Serialize,
+};
+use specs::{
+    Dispatcher,
+    DispatcherBuilder,
+    RunNow,
+    World,
+};
+use std::{
+    fs::{
+        self,
+        File,
+    },
+    io::Write,
+    path::{
+        Path,
+        PathBuf,
+    },
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum Background {
     Texture(String, #[serde(with = "ColorDef")] Color),
-    Color(#[serde(with = "ColorDef")] Color)
+    Color(#[serde(with = "ColorDef")] Color),
 }
 
 impl Default for Background {
@@ -83,7 +95,26 @@ pub struct Level<'a, 'b> {
     dispatcher: Dispatcher<'a, 'b>,
     chunk_sys: ChunkSystem,
     resources_manager: ResourcesManager,
-    blend_mode: Option<BlendMode>
+    blend_mode: Option<BlendMode>,
+}
+
+pub fn clone<'l, 'l2, F: FnMut(DispatcherBuilder<'l, 'l2>) -> DispatcherBuilder<'l, 'l2>>(level: &Level, mut build_dispatcher: F) -> Level<'l, 'l2> {
+    let (mut world, chunk_sys) = ecs::copy_world(&level.world);
+
+    let dispatcher_builder = DispatcherBuilder::new();
+
+    let mut dispatcher = build_dispatcher(dispatcher_builder).build();
+
+    dispatcher.setup(&mut world.res);
+
+    Level {
+        config: level.config.clone(),
+        world,
+        dispatcher,
+        chunk_sys,
+        resources_manager: level.resources_manager.clone(),
+        blend_mode: level.blend_mode.clone(),
+    }
 }
 
 impl<'a, 'b> Level<'a, 'b> {
@@ -92,7 +123,7 @@ impl<'a, 'b> Level<'a, 'b> {
 
         let mut resources_manager = resources_manager.unwrap_or_default();
 
-        DeserializeSystem { reader: File::open(&config.world_data_path()).unwrap()  }.run_now(&world.res);
+        DeserializeSystem { reader: File::open(&config.world_data_path()).unwrap() }.run_now(&world.res);
 
         LoadingResourcesSystem { ctx, resources_manager: &mut resources_manager }.run_now(&world.res);
 
@@ -114,29 +145,10 @@ impl<'a, 'b> Level<'a, 'b> {
             author,
             name,
             background: Background::default(),
-            dir
+            dir,
         };
 
-       Level { config, world, dispatcher, chunk_sys, resources_manager, blend_mode: None }
-    }
-
-    pub fn clone<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>>(&self, mut build_dispatcher: F) -> Self {
-        let (mut world, chunk_sys) = ecs::copy_world(&self.world);
-
-        let dispatcher_builder = DispatcherBuilder::new();
-
-        let mut dispatcher = build_dispatcher(dispatcher_builder).build();
-
-        dispatcher.setup(&mut world.res);
-
-        Level {
-            config: self.config.clone(),
-            world,
-            dispatcher,
-            chunk_sys,
-            resources_manager: self.resources_manager.clone(),
-            blend_mode: self.blend_mode.clone()
-        }
+        Level { config, world, dispatcher, chunk_sys, resources_manager, blend_mode: None }
     }
 
     pub fn get_world(&self) -> &World { &self.world }
@@ -173,11 +185,9 @@ impl<'a, 'b> Level<'a, 'b> {
     pub fn draw(&self, ctx: &mut Context, camera: &Camera) {
         let active_rect_chunk = self.world.read_resource::<ActiveChunksRect>().get_rect().clone();
 
-        if let Background::Texture(ref _path, ref _col) = self.config.background {
+        if let Background::Texture(ref _path, ref _col) = self.config.background {}
 
-        }
-
-        let rect_in_screen = camera.world_rect_to_screen(&active_rect_chunk);
+        let rect_in_screen = camera.world_rect_to_screen(active_rect_chunk);
 
         graphics::set_color(ctx, (100, 0, 200, 255).into()).unwrap();
 

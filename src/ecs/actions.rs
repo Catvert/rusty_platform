@@ -1,10 +1,25 @@
-use specs::prelude::*;
-use specs::saveload::{U64Marker, U64MarkerAllocator, MarkerAllocator, Marker};
-
-use na::Vector2;
-
-use ecs::rect::RectComponent;
-use ecs::physics::{PhysicsComponent, NextPhysicsStep};
+use crate::ecs::{
+    physics::{
+        NextPhysicsStep,
+        PhysicsComponent,
+    },
+    rect::RectComponent,
+};
+use nalgebra::Vector2;
+use serde::{
+    Deserialize,
+    Serialize,
+};
+use specs::{
+    prelude::*,
+    saveload::{
+        Marker,
+        MarkerAllocator,
+        U64Marker,
+        U64MarkerAllocator,
+    },
+};
+use specs_derive::Component;
 
 #[derive(Component)]
 pub struct ActionComponent {

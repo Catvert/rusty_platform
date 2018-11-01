@@ -1,34 +1,41 @@
-use ggez::Context;
-use ggez::graphics::Color;
-
-use na::Vector2;
-
-use scenes::{Scene, SceneState, NextState};
-
-use ecs::level::Level;
-use ecs::inputs::InputSystem;
-use ecs::actions::ActionSystem;
-
-use utils::camera::Camera;
-use utils::input_manager::RefInputManager;
-use utils::resources_manager::RefRM;
-use ecs::physics::PhysicsSystem;
-use wrapper::imgui_wrapper::CenteredWindow;
-
-use imgui::Ui;
-use ggez::event::Keycode;
-use imgui::ImGuiCond;
-use std::path::PathBuf;
-use ecs::level::LevelConfig;
-use scenes::main_scene::MainScene;
-
-use utils::constants;
+use crate::{
+    ecs::{
+        actions::ActionSystem,
+        inputs::InputSystem,
+        level::Level,
+        level::LevelConfig,
+        physics::PhysicsSystem,
+    },
+    scenes::{
+        main_scene::MainScene,
+        NextState,
+        Scene,
+        SceneState,
+    },
+    utils::{
+        camera::Camera,
+        constants,
+        input_manager::RefInputManager,
+    },
+    wrapper::imgui_wrapper::CenteredWindow,
+};
+use ggez::{
+    Context,
+    event::Keycode,
+    graphics::Color,
+};
+use imgui::{
+    im_str,
+    ImGuiCond,
+    Ui,
+};
+use nalgebra::Vector2;
 
 pub struct GameScene<'a, 'b> {
     level: Level<'a, 'b>,
     input_manager: RefInputManager,
     camera: Camera,
-    show_exit_menu: bool
+    show_exit_menu: bool,
 }
 
 impl<'a, 'b> GameScene<'a, 'b> {
@@ -57,7 +64,7 @@ impl<'a, 'b> Scene for GameScene<'a, 'b> {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> SceneState {
-        self.level.draw( ctx, &self.camera);
+        self.level.draw(ctx, &self.camera);
         Ok(NextState::Continue)
     }
 
@@ -69,9 +76,7 @@ impl<'a, 'b> Scene for GameScene<'a, 'b> {
                 if ui.button(im_str!("Reprendre"), (-1., 25.)) {
                     self.show_exit_menu = false;
                 }
-                if ui.button(im_str!("Recommencer"), (-1., 25.)) {
-
-                }
+                if ui.button(im_str!("Recommencer"), (-1., 25.)) {}
                 if ui.button(im_str!("Quitter"), (-1., 25.)) {
                     next_state = NextState::Replace(Box::new(MainScene::new(ctx, self.input_manager.clone())));
                 }
@@ -84,6 +89,6 @@ impl<'a, 'b> Scene for GameScene<'a, 'b> {
     fn background_color(&self) -> Color { *self.level.background_color() }
 
     fn resize_event(&mut self, _ctx: &mut Context, screen_size: Vector2<u32>) {
-        self.camera.update_screen_size(&screen_size);
+        self.camera.update_screen_size(screen_size);
     }
 }

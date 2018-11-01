@@ -1,19 +1,28 @@
-use specs::prelude::*;
-
-use na::{self, Vector2, Point2};
-
+use crate::{
+    ecs::rect::RectComponent,
+    utils::{
+        camera::Camera,
+        constants::CHUNK_SIZE,
+        math::Rect,
+    },
+};
+use nalgebra::{
+    self,
+    Point2,
+    Vector2,
+};
 use ndarray::prelude::*;
+use specs::{
+    prelude::*,
+};
+use specs_derive::*;
 
-use ecs::rect::RectComponent;
-
-use utils::math::Rect;
-use utils::constants::CHUNK_SIZE;
-use utils::camera::Camera;
+// Storage attribute ?
 
 pub struct ActiveChunksRect {
     rect: Rect,
     scale: f32,
-    dirty: bool
+    dirty: bool,
 }
 
 impl ActiveChunksRect {
@@ -21,15 +30,15 @@ impl ActiveChunksRect {
         ActiveChunksRect { rect, scale, dirty: true }
     }
 
-    pub fn get_rect(&self) -> &Rect { &self.rect }
+    pub fn get_rect(&self) -> Rect { self.rect }
 
-    pub fn move_by(&mut self, by: &Vector2<f64>) {
+    pub fn move_by(&mut self, by: Vector2<f64>) {
         self.rect.move_by(by);
         self.dirty = true;
     }
 
-    pub fn move_to(&mut self, to: &Point2<f64>) {
-        if self.rect.pos != *to {
+    pub fn move_to(&mut self, to: Point2<f64>) {
+        if self.rect.pos != to {
             self.rect.move_to(to);
             self.dirty = true;
         }
@@ -37,8 +46,8 @@ impl ActiveChunksRect {
 
     pub fn update_camera(&mut self, camera: &Camera) {
         let camera_view = camera.world_view();
-        self.move_to(&camera_view.pos);
-        self.rect.resize_to(&camera_view.size);
+        self.move_to(camera_view.pos);
+        self.rect.resize_to(camera_view.size);
     }
 
     pub fn update_dirty(&mut self) -> bool {
@@ -71,7 +80,7 @@ pub struct ChunkSystem {
     dirty_remove: BitSet,
     insert_rect_reader: Option<ReaderId<InsertedFlag>>,
     modify_rect_reader: Option<ReaderId<ModifiedFlag>>,
-    remove_rect_reader: Option<ReaderId<RemovedFlag>>
+    remove_rect_reader: Option<ReaderId<RemovedFlag>>,
 }
 
 impl ChunkSystem {
@@ -87,7 +96,7 @@ impl ChunkSystem {
             dirty_remove: BitSet::new(),
             insert_rect_reader: None,
             modify_rect_reader: None,
-            remove_rect_reader: None
+            remove_rect_reader: None,
         }
     }
 
@@ -104,13 +113,13 @@ impl ChunkSystem {
         rects
     }
 
-    pub fn get_bounds_chunks(&self) -> &Rect { &self.chunks_rect }
+    pub fn get_bounds_chunks(&self) -> Rect { self.chunks_rect }
 
     fn get_chunk_rect(chunk: Chunk) -> Rect {
         Rect::new(chunk.0 as f64 * CHUNK_SIZE as f64, chunk.1 as f64 * CHUNK_SIZE as f64, CHUNK_SIZE as u32, CHUNK_SIZE as u32)
     }
 
-    fn get_chunks_overlap_rect(&self, rect: &Rect) -> Vec<Chunk> {
+    fn get_chunks_overlap_rect(&self, rect: Rect) -> Vec<Chunk> {
         let mut overlaps_chunks = vec![];
 
         let chunk_contains = |(x, y): Chunk| -> bool {
@@ -118,10 +127,10 @@ impl ChunkSystem {
         };
 
         if self.chunks_rect.overlaps(rect) {
-            let mut x = na::max(0, rect.pos.x as usize / CHUNK_SIZE as usize);
-            let mut y = na::max(0, rect.pos.y as usize / CHUNK_SIZE as usize);
+            let mut x = nalgebra::max(0, rect.pos.x as usize / CHUNK_SIZE as usize);
+            let mut y = nalgebra::max(0, rect.pos.y as usize / CHUNK_SIZE as usize);
 
-            if  chunk_contains((x, y)) {
+            if chunk_contains((x, y)) {
                 overlaps_chunks.push((x, y));
 
                 let first_x_chunk = x;
@@ -130,7 +139,7 @@ impl ChunkSystem {
                     if chunk_contains((x + 1, y)) {
                         x += 1;
                         overlaps_chunks.push((x, y));
-                        continue
+                        continue;
                     } else {
                         x = first_x_chunk;
                     }
@@ -139,7 +148,7 @@ impl ChunkSystem {
                         y += 1;
                         overlaps_chunks.push((x, y))
                     } else {
-                        break
+                        break;
                     }
                 }
             }
@@ -162,7 +171,7 @@ impl ChunkSystem {
         }
     }
 
-    fn insert_entity_chunks<'a>(&mut self, ent: Entity, chunk_comp: &mut ChunkComponent, rect: &Rect, active_storage: &mut WriteStorage<'a, ActiveChunkMarker>, active_rect: &ActiveChunksRect) {
+    fn insert_entity_chunks<'a>(&mut self, ent: Entity, chunk_comp: &mut ChunkComponent, rect: Rect, active_storage: &mut WriteStorage<'a, ActiveChunkMarker>, active_rect: &ActiveChunksRect) {
         let chunks = self.get_chunks_overlap_rect(rect);
         for chunk in chunks.iter() {
             self.chunks.get_mut(*chunk).unwrap().push(ent);
@@ -185,12 +194,11 @@ impl ChunkSystem {
         }
     }
 
-    fn update_entity_chunks<'a>(&mut self, ent: Entity, chunk_comp: &mut ChunkComponent, rect: &Rect, active_storage: &mut WriteStorage<'a, ActiveChunkMarker>, active_rect: &ActiveChunksRect) {
+    fn update_entity_chunks<'a>(&mut self, ent: Entity, chunk_comp: &mut ChunkComponent, rect: Rect, active_storage: &mut WriteStorage<'a, ActiveChunkMarker>, active_rect: &ActiveChunksRect) {
         // TODO pas terrible
         self.remove_entity_chunks(ent, chunk_comp, active_storage);
         self.insert_entity_chunks(ent, chunk_comp, rect, active_storage, active_rect);
     }
-
 }
 
 impl<'a> System<'a> for ChunkSystem {
@@ -226,7 +234,7 @@ impl<'a> System<'a> for ChunkSystem {
         }
 
         if active_rect.update_dirty() {
-           self.update_active_entities(&entities, &mut active_chunk, &active_rect);
+            self.update_active_entities(&entities, &mut active_chunk, &active_rect);
         }
     }
 

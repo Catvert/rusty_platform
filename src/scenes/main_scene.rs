@@ -1,35 +1,39 @@
-use ggez::{Context};
-use ggez::graphics::{self, Point2, Image, DrawParam, Color};
-
-use na::Vector2;
-
-use scenes::{Scene, SceneState, NextState};
-use scenes::game_scene::GameScene;
-use scenes::editor_scene::EditorScene;
-
-use utils::resources_manager::RefRM;
-use utils::input_manager::RefInputManager;
-use imgui::Ui;
-use wrapper::imgui_wrapper::CenteredWindow;
-use imgui::ImGuiCol;
-use imgui::ImGuiCond;
-use imgui::ImString;
-
-use std::fs::File;
-
-use walkdir::{WalkDir, DirEntry};
-use imgui::ImStr;
-use utils::imgui::ImGuiExtensions;
-use std::path::PathBuf;
-use ecs::level::LevelConfig;
-
-use utils::constants;
+use crate::{
+    ecs::level::LevelConfig,
+    scenes::{
+        editor_scene::EditorScene,
+        game_scene::GameScene,
+        NextState,
+        Scene,
+        SceneState,
+    },
+    utils::{
+        constants,
+        imgui::ImGuiExtensions,
+        input_manager::RefInputManager,
+        resources_manager::RefRM,
+    },
+    wrapper::imgui_wrapper::CenteredWindow,
+};
+use ggez::{
+    Context,
+    graphics::{
+        self,
+        Color,
+        DrawParam,
+        Image,
+        Point2,
+    },
+};
+use imgui::{
+    im_str,
+    ImGuiCol,
+    ImGuiCond,
+    Ui,
+};
+use nalgebra::Vector2;
 use std::ffi::OsStr;
-use std::path::Path;
-
-use utils::camera::Camera;
-use wrapper::imgui_wrapper::ImGuiWrapper;
-use imgui::ImTexture;
+use walkdir::WalkDir;
 
 pub struct MainScene {
     resources_manager: RefRM,
@@ -48,7 +52,7 @@ impl MainScene {
         let background = resources_manager.borrow_mut().load_or_get_texture(ctx, constants::path::MAIN_MENU_BACKGROUND_FILE.as_path()).unwrap().unwrap().clone();
         let logo = resources_manager.borrow_mut().load_or_get_texture(ctx, constants::path::MAIN_MENU_LOGO_FILE.as_path()).unwrap().unwrap().clone();
 
-        let levels: Vec<LevelConfig> =  WalkDir::new(constants::path::LEVELS_DIR.as_path()).into_iter()
+        let levels: Vec<LevelConfig> = WalkDir::new(constants::path::LEVELS_DIR.as_path()).into_iter()
             .filter_map(|e| e.ok())
             .filter(|e| { e.file_name() == OsStr::new(constants::path::LEVEL_CONFIG_FILE.as_path()) })
             .filter_map(|config_file| LevelConfig::load(config_file.path().parent().unwrap().to_owned()).ok())
@@ -106,7 +110,7 @@ impl Scene for MainScene {
             let MainScene { ref mut show_levels_window, ref levels, ref mut levels_window_select_level, ref resources_manager, ref input_manager, .. } = self;
 
             ui.window(im_str!("Sélection d'un niveau")).opened(show_levels_window).build(|| {
-                ui.combo_str(im_str!("niveau"), levels_window_select_level,levels.iter().map(|l| l.name.as_str()).collect::<Vec<_>>().as_slice(), 30);
+                ui.combo_str(im_str!("niveau"), levels_window_select_level, levels.iter().map(|l| l.name.as_str()).collect::<Vec<_>>().as_slice(), 30);
 
                 if ui.button(im_str!("Jouer"), (-1., 0.)) {
                     if let Some(config) = levels.iter().nth(*levels_window_select_level as usize) {
@@ -116,7 +120,7 @@ impl Scene for MainScene {
 
                 if ui.button(im_str!("Éditer"), (-1., 0.)) {
                     if let Some(config) = levels.iter().nth(*levels_window_select_level as usize) {
-                        result = NextState::Replace(Box::new(EditorScene::load_level(ctx,window_size.clone(), None, input_manager.clone(), config.clone())));
+                        result = NextState::Replace(Box::new(EditorScene::load_level(ctx, window_size.clone(), None, input_manager.clone(), config.clone())));
                     }
                 }
 
@@ -127,9 +131,7 @@ impl Scene for MainScene {
         }
 
         if self.show_settings_window {
-            ui.window(im_str!("Options")).opened(&mut self.show_settings_window).resizable(false).center(ui.frame_size(), (150., 200.), ImGuiCond::Always, ImGuiCond::Once).build(||{
-
-            });
+            ui.window(im_str!("Options")).opened(&mut self.show_settings_window).resizable(false).center(ui.frame_size(), (150., 200.), ImGuiCond::Always, ImGuiCond::Once).build(|| {});
         }
 
         Ok(result)

@@ -1,10 +1,20 @@
-use specs::prelude::*;
-
+use crate::{
+    ecs::actions::{
+        ActionComponent,
+        Actions,
+    },
+    utils::input_manager::{
+        JustPressed,
+        RefInputManager,
+    },
+};
 use ggez::event::Keycode;
-
-use ecs::actions::{Actions, ActionComponent};
-
-use utils::input_manager::{RefInputManager, JustPressed};
+use serde::{
+    Deserialize,
+    Serialize,
+};
+use specs::prelude::*;
+use specs_derive::Component;
 
 #[derive(Component, Serialize, Deserialize, Clone, Default)]
 pub struct InputComponent {

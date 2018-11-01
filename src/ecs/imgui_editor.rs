@@ -1,20 +1,29 @@
-
-
-use std::collections::HashMap;
-
-use imgui::{Ui, ImString, ImStr};
-
+use crate::ecs::{
+    actions::Actions,
+    inputs::InputComponent,
+    physics::{
+        BodyType,
+        PhysicsComponent,
+    },
+    rect::RectComponent,
+    render::{
+        SpriteComponent,
+        SpriteMode,
+    },
+};
 use ggez::event::Keycode;
-
-use ecs::components_prelude::*;
-use ecs::actions::Actions;
-
-use na::Vector2;
-use ecs::render::SpriteMode;
-use std::num::NonZeroU32;
-
-use ecs::physics::BodyType;
-use ecs::physics::JumpData;
+use imgui::{
+    ImStr,
+    ImString,
+    Ui,
+};
+use imgui::im_str;
+use lazy_static::lazy_static;
+use nalgebra::Vector2;
+use std::{
+    collections::HashMap,
+    num::NonZeroU32,
+};
 
 trait EnumCombo where Self: Sized {
     type Wrapper;
@@ -23,7 +32,6 @@ trait EnumCombo where Self: Sized {
     fn to_wrapper(&self) -> Self::Wrapper;
     fn to_enum(&self, w: &Self::Wrapper) -> Self;
 }
-
 
 macro_rules! impl_enum_ui_combo_wrapper {
     ($wrapper: ident, $wrapper_imstr: ident, $e:ident, $combo_name:expr; [$ ($wrap_variant:ident => $name:expr; $enum_pattern:pat, $enum_build: expr), *]) => {
@@ -231,7 +239,7 @@ impl ImGuiEditor for SpriteComponent {
                         *y = NonZeroU32::new(y_i32 as u32).unwrap();
                     }
                 }
-            },
+            }
         }
     }
 }
@@ -249,11 +257,10 @@ impl ImGuiEditor for PhysicsComponent {
         }
 
         match self.body_type {
-            BodyType::Static => {
-            },
+            BodyType::Static => {}
             BodyType::Dynamic { ref mut apply_gravity, ref mut jump_data } => {
                 ui.checkbox(im_str!("Appliquer la gravité"), apply_gravity);
-            },
+            }
         }
     }
 }

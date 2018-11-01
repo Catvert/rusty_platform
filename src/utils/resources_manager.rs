@@ -1,13 +1,17 @@
-use std::collections::HashMap;
-use std::rc::Rc;
-use std::cell::RefCell;
-
-use ggez::Context;
-use ggez::graphics::Image;
-use ggez::error::GameError;
-
-use std::path::{Path, PathBuf};
-use imgui::ImTexture;
+use ggez::{
+    Context,
+    error::GameError,
+    graphics::Image,
+};
+use std::{
+    cell::RefCell,
+    collections::HashMap,
+    path::{
+        Path,
+        PathBuf,
+    },
+    rc::Rc,
+};
 
 pub type RefRM = Rc<RefCell<ResourcesManager>>;
 
@@ -17,6 +21,7 @@ pub struct ResourcesManager {
 }
 
 unsafe impl Send for ResourcesManager {}
+
 unsafe impl Sync for ResourcesManager {}
 
 impl ResourcesManager {

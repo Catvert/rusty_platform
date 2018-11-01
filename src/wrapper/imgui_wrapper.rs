@@ -1,27 +1,49 @@
-use std::fs::File;
-use std::io::Read;
-
-use ggez::Context;
-use ggez::event::{MouseButton, Keycode};
-
-use imgui::{ImGui, Window, ImGuiCond, ImVec4, FrameSize, Ui, ImFontConfig, FontGlyphRange};
-use imgui_sys::{igStyleColorsDark};
-use imgui_gfx_renderer::{Renderer, Shaders};
-
+use crate::scenes::{
+    Scene,
+    SceneState,
+};
+use gfx::{
+    CommandBuffer,
+    Encoder,
+};
+use gfx_core::{
+    Factory,
+    handle::RenderTargetView,
+    memory::Typed,
+};
 use gfx_device_gl;
-use gfx_core::{Factory};
-use gfx_core::handle::RenderTargetView;
-use gfx_core::memory::Typed;
-use gfx::{CommandBuffer, Encoder};
-use ggez::event::Event;
+use ggez::{
+    Context,
+    event::{
+        Event,
+        Keycode,
+        MouseButton,
+    },
+};
+use imgui::{
+    FontGlyphRange,
+    FrameSize,
+    ImFontConfig,
+    ImGui,
+    ImGuiCond,
+    ImTexture,
+    ImVec4,
+    Ui,
+    Window,
+};
+use imgui_gfx_renderer::{
+    Renderer,
+    Shaders,
+    Texture,
+};
+use imgui_sys::igStyleColorsDark;
+use nalgebra::Vector2;
 use sdl2::event::WindowEvent;
-use std::time::Instant;
-use scenes::Scene;
-use na::Vector2;
-use scenes::SceneState;
-use imgui::ImTexture;
-
-use imgui_gfx_renderer::Texture;
+use std::{
+    fs::File,
+    io::Read,
+    time::Instant,
+};
 
 const IMGUI_TAB: u8 = 0;
 const IMGUI_LEFT_ARROW: u8 = 1;
@@ -63,14 +85,14 @@ struct MouseState {
 
 pub enum ImGuiFonts {
     Default,
-    Big
+    Big,
 }
 
 pub struct ImGuiWrapper {
     pub imgui: ImGui,
     pub renderer: Renderer<gfx_device_gl::Resources>,
     last_frame: Instant,
-    mouse_state: MouseState
+    mouse_state: MouseState,
 }
 
 impl ImGuiWrapper {
@@ -87,24 +109,23 @@ impl ImGuiWrapper {
             igStyleColorsDark(imgui.style_mut());
         }
 
-        {
-            // Fix incorrect colors with sRGB framebuffer
-            fn imgui_gamma_to_linear(col: ImVec4) -> ImVec4 {
-                let x = col.x.powf(2.2);
-                let y = col.y.powf(2.2);
-                let z = col.z.powf(2.2);
-                let w = 1.0 - (1.0 - col.w).powf(2.2);
-                ImVec4::new(x, y, z, w)
-            }
 
-            let style = imgui.style_mut();
-            style.window_rounding = 10.;
-            style.child_rounding = 10.;
-            style.frame_rounding = 10.;
+        // Fix incorrect colors with sRGB framebuffer
+        fn imgui_gamma_to_linear(col: ImVec4) -> ImVec4 {
+            let x = col.x.powf(2.2);
+            let y = col.y.powf(2.2);
+            let z = col.z.powf(2.2);
+            let w = 1.0 - (1.0 - col.w).powf(2.2);
+            ImVec4::new(x, y, z, w)
+        }
 
-            for col in 0..style.colors.len() {
-                style.colors[col] = imgui_gamma_to_linear(style.colors[col]);
-            }
+        let style = imgui.style_mut();
+        style.window_rounding = 10.;
+        style.child_rounding = 10.;
+        style.frame_rounding = 10.;
+
+        for col in 0..style.colors.len() {
+            style.colors[col] = imgui_gamma_to_linear(style.colors[col]);
         }
 
         let shaders = {
@@ -155,11 +176,11 @@ impl ImGuiWrapper {
                 Keycode::LCtrl | Keycode::RCtrl => {
                     imgui.set_key_ctrl(pressed);
                     IMGUI_UNDEFINED
-                },
+                }
                 Keycode::LAlt | Keycode::RAlt => {
                     imgui.set_key_alt(pressed);
                     IMGUI_UNDEFINED
-                },
+                }
                 Keycode::LShift | Keycode::RShift => {
                     imgui.set_key_shift(pressed);
                     IMGUI_UNDEFINED
@@ -177,48 +198,48 @@ impl ImGuiWrapper {
                 if let Some(key) = keycode {
                     update_imgui_key(&mut self.imgui, key, true);
                 }
-            },
+            }
             Event::KeyUp { keycode, .. } => {
                 if let Some(key) = keycode {
                     update_imgui_key(&mut self.imgui, key, false);
                 }
-            },
+            }
             Event::TextInput { ref text, .. } => {
                 if let Some(c) = text.chars().nth(0) {
                     self.imgui.add_input_character(c);
                 }
-            },
-            Event::MouseButtonDown {  mouse_btn, .. } => {
+            }
+            Event::MouseButtonDown { mouse_btn, .. } => {
                 match mouse_btn {
                     MouseButton::Left => {
                         self.mouse_state.pressed.0 = true;
-                    },
+                    }
                     MouseButton::Right => {
                         self.mouse_state.pressed.1 = true;
-                    },
+                    }
                     MouseButton::Middle => {
                         self.mouse_state.pressed.2 = true;
-                    },
+                    }
                     _ => {}
                 }
-            },
+            }
             Event::MouseButtonUp { mouse_btn, .. } => {
                 match mouse_btn {
                     MouseButton::Left => {
                         self.mouse_state.pressed.0 = false;
-                    },
+                    }
                     MouseButton::Right => {
                         self.mouse_state.pressed.1 = false;
-                    },
+                    }
                     MouseButton::Middle => {
                         self.mouse_state.pressed.2 = false;
-                    },
+                    }
                     _ => {}
                 }
-            },
+            }
             Event::MouseMotion { x, y, .. } => {
                 self.mouse_state.pos = (x, y);
-            },
+            }
             Event::MouseWheel { y, .. } => {
                 self.mouse_state.wheel = y as f32;
             }
@@ -284,7 +305,7 @@ impl ImGuiWrapper {
         next_scene_state
     }
 
-    pub fn render_ui_ex<R: FnMut(&Ui) -> (), F: Factory<gfx_device_gl::Resources>, C: CommandBuffer<gfx_device_gl::Resources>>(&mut self, logical_size: (u32, u32), factory: &mut F, encoder: &mut Encoder<gfx_device_gl::Resources, C>,  mut run_ui: R) {
+    pub fn render_ui_ex<R: FnMut(&Ui) -> (), F: Factory<gfx_device_gl::Resources>, C: CommandBuffer<gfx_device_gl::Resources>>(&mut self, logical_size: (u32, u32), factory: &mut F, encoder: &mut Encoder<gfx_device_gl::Resources, C>, mut run_ui: R) {
         self.update_mouse();
 
         let frame_size = FrameSize {

@@ -1,33 +1,49 @@
-use std::fs::File;
-use std::io::Write;
-use std::collections::VecDeque;
-
-use ggez::{Context, ContextBuilder};
-use ggez::conf::{WindowSetup, NumSamples, WindowMode, FullscreenType};
-use ggez::graphics;
-use ggez::timer;
-
-use sdl2::event::Event::*;
-use sdl2::event::WindowEvent;
-
+use crate::{
+    scenes::{
+        main_scene::MainScene,
+        NextState,
+        Scene,
+        SceneState,
+    },
+    utils::{
+        constants,
+        input_manager::RefInputManager,
+    },
+    wrapper::imgui_wrapper::ImGuiWrapper,
+};
+use ggez::{
+    conf::{
+        FullscreenType,
+        NumSamples,
+        WindowMode,
+        WindowSetup,
+    },
+    Context,
+    ContextBuilder,
+    graphics,
+    timer,
+};
+use nalgebra::{
+    Point2,
+    Vector2,
+};
 use ron;
-
-use utils::input_manager::RefInputManager;
-
-use scenes::SceneState;
-use scenes::NextState;
-use scenes::main_scene::MainScene;
-
-use utils::constants;
-
-use na::Point2;
-use na::Vector2;
-
-use scenes::Scene;
-use wrapper::imgui_wrapper::ImGuiWrapper;
-use gfx_device_gl;
-use sdl2::EventPump;
-use imgui::ImGui;
+use sdl2::{
+    event::{
+        Event::*,
+        WindowEvent,
+    },
+    EventPump,
+};
+use serde::{
+    Deserialize,
+    Serialize,
+};
+use std::{
+    collections::VecDeque,
+    fs::File,
+    io::Write,
+};
 
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -35,7 +51,7 @@ struct GameConfig {
     window_size: (u32, u32),
     fullscreen_type: FullscreenType,
     borderless: bool,
-    vsync: bool
+    vsync: bool,
 }
 
 impl GameConfig {
@@ -79,7 +95,7 @@ impl Game {
             icon: "/icon.png".to_string(),
             resizable: true,
             allow_highdpi: false,
-            samples: NumSamples::One
+            samples: NumSamples::One,
         };
 
         let window_mode = WindowMode {
@@ -91,7 +107,7 @@ impl Game {
             min_width: 800,
             min_height: 600,
             max_width: 1920,
-            max_height: 1080
+            max_height: 1080,
         };
 
         match ContextBuilder::new("platform_finisher", "finch").window_setup(window_setup).window_mode(window_mode).build() {
@@ -108,7 +124,7 @@ impl Game {
                 scenes.push_back(main_scene);
 
                 Game { ctx: context, imgui_wrapper, scenes, input_manager, exit: false }
-            },
+            }
             Err(e) => panic!("Impossible d'initialiser le jeu ! Erreur : {}", e)
         }
     }
@@ -117,12 +133,12 @@ impl Game {
         if match result {
             Ok(state) => {
                 match state {
-                    NextState::Continue => { false },
+                    NextState::Continue => { false }
                     NextState::Push(mut scene) => {
                         scene.init_ui(ctx, imgui_wrapper);
                         scenes.push_front(scene);
                         false
-                    },
+                    }
                     NextState::Replace(mut scene) => {
                         scene.init_ui(ctx, imgui_wrapper);
 
@@ -133,9 +149,9 @@ impl Game {
                     NextState::Pop => {
                         scenes.pop_front();
                         scenes.is_empty()
-                    },
+                    }
                 }
-            },
+            }
             Err(e) => {
                 panic!("Erreur : {}", e);
             }
@@ -175,35 +191,33 @@ impl Game {
                     mouse_btn, ..
                 } => {
                     input_manager.update_mouse(mouse_btn, true);
-                },
+                }
                 MouseButtonUp {
                     mouse_btn, ..
                 } => {
                     input_manager.update_mouse(mouse_btn, false);
-                },
+                }
                 MouseMotion {
                     x,
                     y,
                     ..
                 } => {
                     input_manager.update_mouse_pos(Point2::new(x, y));
-                },
-                MouseWheel { x: _, y: _, .. } => {
-
-                },
+                }
+                MouseWheel { x: _, y: _, .. } => {}
                 ControllerButtonDown { button: _, which: _, .. } => {}
                 ControllerButtonUp { button: _, which: _, .. } => {}
                 ControllerAxisMotion {
                     axis: _, value: _, which: _, ..
-                } => {},
+                } => {}
                 Window {
                     win_event: WindowEvent::FocusGained,
                     ..
-                } => {},
+                } => {}
                 Window {
                     win_event: WindowEvent::FocusLost,
                     ..
-                } => {},
+                } => {}
                 Window {
                     win_event: WindowEvent::Resized(w, h),
                     ..
@@ -217,7 +231,7 @@ impl Game {
                         h as f32,
                     );
                     graphics::set_screen_coordinates(&mut self.ctx, new_rect).unwrap();
-                },
+                }
                 _ => {}
             }
         }
@@ -233,33 +247,21 @@ impl Game {
 
             let Game { ref mut ctx, ref mut scenes, ref mut imgui_wrapper, ref mut exit, .. } = self;
 
-            {
-                while timer::check_update_time(ctx, constants::DESIRED_FPS) {
-                    let dt = 1.0 / (constants::DESIRED_FPS as f32);
+            while timer::check_update_time(ctx, constants::DESIRED_FPS) {
+                let dt = 1.0 / (constants::DESIRED_FPS as f32);
 
-                    let result = scenes.front_mut().unwrap().update(ctx, dt);
-                    Self::handle_scene_state(result, ctx,scenes, imgui_wrapper, exit);
+                Self::handle_scene_state(scenes.front_mut().unwrap().update(ctx, dt), ctx, scenes, imgui_wrapper, exit);
 
-                    self.input_manager.lock().unwrap().update();
-                }
+                self.input_manager.lock().unwrap().update();
             }
 
             graphics::set_background_color(ctx, scenes.front_mut().unwrap().background_color());
 
             graphics::clear(ctx);
 
-            {
-                let result = scenes.front_mut().unwrap().draw(ctx);
-                Self::handle_scene_state(result, ctx, scenes, imgui_wrapper, exit);
-            }
+            Self::handle_scene_state(scenes.front_mut().unwrap().draw(ctx), ctx, scenes, imgui_wrapper, exit);
 
-            {
-                let window_size = ctx.gfx_context.window.drawable_size();
-                let window_size = Vector2::new(window_size.0, window_size.1);
-
-                let result = imgui_wrapper.render_scene_ui(ctx,scenes.front_mut().unwrap());
-                Self::handle_scene_state(result, ctx, scenes, imgui_wrapper, exit);
-            }
+            Self::handle_scene_state(imgui_wrapper.render_scene_ui(ctx, scenes.front_mut().unwrap()), ctx, scenes, imgui_wrapper, exit);
 
             graphics::present(ctx);
         }

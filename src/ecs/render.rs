@@ -1,30 +1,50 @@
-use ggez::graphics::Image;
-
+use crate::{
+    ecs::{
+        chunk::ActiveChunkMarker,
+        rect::RectComponent,
+    },
+    utils::{
+        camera::Camera,
+        math::Rect,
+        resources_manager::ResourcesManager,
+    },
+};
+use ggez::{
+    Context,
+    graphics::{
+        self,
+        DrawParam,
+        Image,
+        spritebatch::SpriteBatch,
+    },
+};
+use nalgebra::{
+    Point2,
+    Vector2,
+};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 use specs::prelude::*;
-use ggez::Context;
-use utils::resources_manager::ResourcesManager;
+use specs_derive::Component;
+use std::{
+    num::NonZeroU32,
+    path::PathBuf,
+};
 
-use utils::math::Rect;
-use utils::camera::Camera;
-use ecs::rect::RectComponent;
-use ecs::chunk::ActiveChunkMarker;
-use std::path::PathBuf;
-use ggez::graphics::{self, DrawParam};
-use ggez::graphics::spritebatch::SpriteBatch;
-use std::num::NonZeroU32;
-use na::{Vector2, Point2};
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub enum SpriteMode {
     Stretch,
-    Repeat { x: NonZeroU32, y: NonZeroU32 }
+    Repeat { x: NonZeroU32, y: NonZeroU32 },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SpriteImage {
     path: PathBuf,
     #[serde(skip)]
-    image: Option<Image>
+    image: Option<Image>,
 }
 
 impl SpriteImage {
@@ -35,15 +55,15 @@ impl SpriteImage {
     pub fn new_unloaded(path: PathBuf) -> Self {
         SpriteImage {
             path,
-            image: None
+            image: None,
         }
     }
 
     pub fn load(path: PathBuf, ctx: &mut Context, resources_manager: &mut ResourcesManager) -> Self {
-        let image =  resources_manager.load_or_get_texture(ctx, &path).unwrap().cloned();
+        let image = resources_manager.load_or_get_texture(ctx, &path).unwrap().cloned();
         SpriteImage {
             path,
-            image
+            image,
         }
     }
 
@@ -61,7 +81,7 @@ impl SpriteImage {
 #[derive(Component, Serialize, Deserialize, Clone, Debug)]
 pub struct SpriteComponent {
     pub image: Option<SpriteImage>,
-    pub mode: SpriteMode
+    pub mode: SpriteMode,
 }
 
 impl SpriteComponent {
@@ -74,7 +94,7 @@ impl Default for SpriteComponent {
     fn default() -> Self {
         SpriteComponent {
             image: None,
-            mode: SpriteMode::Stretch
+            mode: SpriteMode::Stretch,
         }
     }
 }
@@ -84,24 +104,24 @@ pub struct RenderSystem<'a> {
     pub camera: &'a Camera,
 }
 
-pub fn draw_sprite(ctx: &mut Context, camera: &Camera, spr_image: &SpriteImage, rect: &Rect, mode: &SpriteMode) {
+pub fn draw_sprite(ctx: &mut Context, camera: &Camera, spr_image: &SpriteImage, rect: Rect, mode: &SpriteMode) {
     let image = spr_image.image.as_ref().expect("Sprite non chargé finch !");
 
     match mode {
         SpriteMode::Stretch => {
-            let scale = camera.world_size_to_screen(&Vector2::new(rect.size.x as f64 / image.width() as f64, rect.size.y as f64 / image.height() as f64));
-            let pos_in_screen = camera.world_point_to_screen(&rect.pos);
+            let scale = camera.world_size_to_screen(Vector2::new(rect.size.x as f64 / image.width() as f64, rect.size.y as f64 / image.height() as f64));
+            let pos_in_screen = camera.world_point_to_screen(rect.pos);
 
             graphics::draw_ex(ctx, image, DrawParam { dest: Point2::new(pos_in_screen.x as f32, pos_in_screen.y as f32), scale: Point2::new(scale.x as f32, scale.y as f32), ..Default::default() }).unwrap();
-        },
+        }
         SpriteMode::Repeat { x, y } => {
-            let scale = camera.world_size_to_screen(&Vector2::new(rect.size.x as f64 / x.get() as f64 / image.width() as f64, rect.size.y as f64 / y.get() as f64 / image.height() as f64));
+            let scale = camera.world_size_to_screen(Vector2::new(rect.size.x as f64 / x.get() as f64 / image.width() as f64, rect.size.y as f64 / y.get() as f64 / image.height() as f64));
 
             let mut batch = SpriteBatch::new(image.clone());
 
             for x in 0..x.get() {
-                for y in 0..y.get()  {
-                    let pos_in_screen = camera.world_point_to_screen(&Point2::new(rect.pos.x, rect.pos.y + y as f64 * scale.y));
+                for y in 0..y.get() {
+                    let pos_in_screen = camera.world_point_to_screen(Point2::new(rect.pos.x, rect.pos.y + y as f64 * scale.y));
 
                     batch.add(DrawParam {
                         dest: Point2::new(pos_in_screen.x as f32 + x as f32 * scale.x as f32, pos_in_screen.y as f32),

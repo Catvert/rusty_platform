@@ -1,53 +1,86 @@
-use specs::{Entity, World, Join, Builder, saveload::MarkedBuilder};
-
-use ggez::Context;
-use ggez::graphics::{self, Color};
-use ggez::event::{Keycode, MouseButton};
-
-use na::{Point2, Vector2};
-
-
-use utils::resources_manager::RefRM;
-use utils::input_manager::{InputManager, RefInputManager};
-use utils::math::Rect;
-
-use ecs::rect::RectComponent;
-use ecs::chunk::{ActiveChunkMarker};
-use ecs::inputs::{InputSystem, InputComponent};
-use ecs::actions::ActionSystem;
-use ecs::level::Level;
-
-use scenes::{Scene, SceneState, NextState};
-use ecs::render::SpriteComponent;
-use ecs::actions::Actions;
-use ecs::physics::PhysicsComponent;
-use ecs::physics::BodyType;
-use specs::saveload::U64Marker;
-use ecs::render::{SpriteMode};
-
-use std::collections::HashMap;
-
-use specs::LazyUpdate;
-
-use ecs::imgui_editor::ImGuiEditor;
+use crate::{
+    ecs::{
+        self,
+        actions::Actions,
+        actions::ActionSystem,
+        chunk::ActiveChunkMarker,
+        imgui_editor::ImGuiEditor,
+        inputs::{
+            InputComponent,
+            InputSystem,
+        },
+        level::{
+            Level,
+            LevelConfig,
+        },
+        physics::{
+            BodyType,
+            PhysicsComponent,
+        },
+        rect::RectComponent,
+        render::{
+            self,
+            SpriteComponent,
+            SpriteImage,
+            SpriteMode,
+        },
+    },
+    scenes::{
+        editor_try_level_scene::EditorTryLevelScene,
+        main_scene::MainScene,
+        NextState,
+        Scene,
+        SceneState,
+    },
+    utils::{
+        input_manager::{
+            InputManager,
+            RefInputManager,
+        },
+        math::Rect,
+    },
+    utils::{
+        camera::Camera,
+        constants,
+        resources_manager::ResourcesManager,
+    },
+};
+use ggez::{
+    Context,
+    event::{
+        Keycode,
+        MouseButton,
+    },
+    graphics::{
+        self,
+        Color,
+    },
+};
+use imgui::{
+    EditableColor,
+    im_str,
+    ImStr,
+    Ui,
+};
 use imgui_sys;
-use imgui::Ui;
-use imgui::ImStr;
-use imgui::ImVec4;
-use imgui::EditableColor;
-
+use lazy_static::lazy_static;
+use nalgebra::{Point2, Vector2};
 use nfd;
-use nfd::Response;
-use std::path::Path;
-
-use utils::constants;
-use ecs::level::LevelConfig;
-use scenes::main_scene::MainScene;
-use utils::camera::Camera;
-use utils::resources_manager::ResourcesManager;
-use ecs::render::{self, SpriteImage};
-use ecs;
-use scenes::editor_try_level_scene::EditorTryLevelScene;
+use specs::{
+    Builder,
+    Entity,
+    Join,
+    LazyUpdate,
+    saveload::{
+        MarkedBuilder,
+        U64Marker,
+    },
+    World,
+};
+use std::{
+    collections::HashMap,
+    path::Path,
+};
 
 lazy_static! {
     static ref COMPONENTS_WRAPPERS: HashMap<ComponentsWrapper, &'static ImStr> = {
@@ -65,7 +98,7 @@ enum ComponentsWrapper {
     Rect,
     Input,
     Physics,
-    Sprite
+    Sprite,
 }
 
 macro_rules! impl_components_wrapper {
@@ -201,12 +234,10 @@ impl<'a, 'b> EditorScene<'a, 'b> {
     }
 
     pub fn clone_entity(world: &mut World, ent: Entity, new_pos: Point2<f64>) -> Entity {
-        use ecs::serialization;
-
         let copy_ent = ecs::copy_entity(ent, world);
 
         if let Some(rect) = world.write_storage::<RectComponent>().get_mut(copy_ent) {
-            rect.move_to(&new_pos);
+            rect.move_to(new_pos);
         }
 
         copy_ent
@@ -218,10 +249,10 @@ impl<'a, 'b> EditorScene<'a, 'b> {
         let active_marker = self.level.get_world().read_storage::<ActiveChunkMarker>();
         let mouse_pos = input_manager.get_mouse_pos();
 
-        let mouse_pos_in_world = self.camera.screen_point_to_world(&Point2::new(mouse_pos.x as f64, mouse_pos.y as f64));
+        let mouse_pos_in_world = self.camera.screen_point_to_world(Point2::new(mouse_pos.x as f64, mouse_pos.y as f64));
 
         for (ent, rect, _) in (&*entities, &rect_storage, &active_marker).join() {
-            if rect.get_rect().contains_pt(&mouse_pos_in_world) {
+            if rect.get_rect().contains_pt(mouse_pos_in_world) {
                 return Some(ent);
             }
         }
@@ -229,7 +260,7 @@ impl<'a, 'b> EditorScene<'a, 'b> {
         None
     }
 
-    fn get_entities_in_rect(&self, in_rect: &Rect) -> Vec<Entity> {
+    fn get_entities_in_rect(&self, in_rect: Rect) -> Vec<Entity> {
         let entities = self.level.get_world().entities();
         let rect_storage = self.level.get_world().read_storage::<RectComponent>();
         let active_marker = self.level.get_world().read_storage::<ActiveChunkMarker>();
@@ -254,19 +285,19 @@ impl<'a, 'b> EditorScene<'a, 'b> {
             let chunks_bounds = Some(self.level.get_chunk_sys().get_bounds_chunks());
 
             if let Some(_jp) = input_manager.is_key_pressed(&Keycode::Left) {
-                self.camera.move_by(&Vector2::new(-constants::EDITOR_CAMERA_MOVE_SPEED * dt, 0.), chunks_bounds);
+                self.camera.move_by(Vector2::new(-constants::EDITOR_CAMERA_MOVE_SPEED * dt, 0.), chunks_bounds);
             }
 
             if let Some(_jp) = input_manager.is_key_pressed(&Keycode::Right) {
-                self.camera.move_by(&Vector2::new(constants::EDITOR_CAMERA_MOVE_SPEED * dt, 0.), chunks_bounds);
+                self.camera.move_by(Vector2::new(constants::EDITOR_CAMERA_MOVE_SPEED * dt, 0.), chunks_bounds);
             }
 
             if let Some(_jp) = input_manager.is_key_pressed(&Keycode::Up) {
-                self.camera.move_by(&Vector2::new(0., -constants::EDITOR_CAMERA_MOVE_SPEED * dt), chunks_bounds);
+                self.camera.move_by(Vector2::new(0., -constants::EDITOR_CAMERA_MOVE_SPEED * dt), chunks_bounds);
             }
 
             if let Some(_jp) = input_manager.is_key_pressed(&Keycode::Down) {
-                self.camera.move_by(&Vector2::new(0., constants::EDITOR_CAMERA_MOVE_SPEED * dt), chunks_bounds);
+                self.camera.move_by(Vector2::new(0., constants::EDITOR_CAMERA_MOVE_SPEED * dt), chunks_bounds);
             }
 
             if let Some(_jp) = input_manager.is_key_pressed(&Keycode::P) {
@@ -286,9 +317,9 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
             let input_manager = self.input_manager.lock().unwrap();
 
             let mouse_pos = input_manager.get_mouse_pos();
-            let mouse_in_world = self.camera.screen_point_to_world(&Point2::new(mouse_pos.x as f64, mouse_pos.y as f64));
+            let mouse_in_world = self.camera.screen_point_to_world(Point2::new(mouse_pos.x as f64, mouse_pos.y as f64));
             let delta_mouse = input_manager.get_delta_mouse();
-            let delta_mouse_in_world = self.camera.screen_size_to_world(&Vector2::new(delta_mouse.x as f64, delta_mouse.y as f64));
+            let delta_mouse_in_world = self.camera.screen_size_to_world(Vector2::new(delta_mouse.x as f64, delta_mouse.y as f64));
 
             if let Some(jp) = input_manager.is_mouse_pressed(&MouseButton::Left) {
                 let next_mode = match self.mode.clone() {
@@ -334,7 +365,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                                             move_y = 0.;
                                         }
 
-                                        rect.move_by(&Vector2::new(move_x, move_y));
+                                        rect.move_by(Vector2::new(move_x, move_y));
                                     }
                                     };
                                 }
@@ -412,7 +443,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                     let p1 = Point2::new(p1.x as i32, p1.y as i32);
                     let p2 = Point2::new(p2.x as i32, p2.y as i32);
 
-                    let entities = self.get_entities_in_rect(&self.camera.screen_rect_to_world(&Rect::from_points(&p1, &p2)));
+                    let entities = self.get_entities_in_rect(self.camera.screen_rect_to_world(Rect::from_points(p1, p2)));
 
                     if entities.is_empty() {
                         self.mode = EditorMode::Default;
@@ -421,7 +452,6 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                         let other_entities = Vec::from(&entities[1..]);
                         let other_entities = if other_entities.is_empty() { None } else { Some(other_entities) };
                         self.mode = EditorMode::Select(select_ent, other_entities);
-
                     }
                 }
             }
@@ -482,7 +512,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
 
     fn draw(&mut self, ctx: &mut Context) -> SceneState {
         let mouse_pos = self.input_manager.lock().unwrap().get_mouse_pos();
-        let mouse_in_world = self.camera.screen_point_to_world(&Point2::new(mouse_pos.x as f64, mouse_pos.y as f64));
+        let mouse_in_world = self.camera.screen_point_to_world(Point2::new(mouse_pos.x as f64, mouse_pos.y as f64));
 
         self.level.draw(ctx, &self.camera);
 
@@ -494,7 +524,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
 
                 graphics::set_color(ctx, Color::from_rgba(100, 0, 0, 100))?;
 
-                graphics::rectangle(ctx, graphics::DrawMode::Fill, Rect::from_points(&p1, &p2).to_ggez_rect())?;
+                graphics::rectangle(ctx, graphics::DrawMode::Fill, Rect::from_points(p1, p2).to_ggez_rect())?;
 
                 graphics::set_color(ctx, Color::from_rgba(255, 255, 255, 255))?;
             }
@@ -532,7 +562,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
 
                     if let Some(spr) = sprite_storage.get_mut(entity) {
                         if let Some(ref image) = spr.image {
-                            render::draw_sprite(ctx, &self.camera, image,&select_rect_placed, &spr.mode);
+                            render::draw_sprite(ctx, &self.camera, image, select_rect_placed, &spr.mode);
                         }
                     }
 
@@ -546,7 +576,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
 
                                         let rect = Rect::from(Point2::new(select_rect_placed.pos.x - delta_x, select_rect_placed.pos.y - delta_y), other_rect.get_rect().size);
 
-                                        render::draw_sprite(ctx, &self.camera, image,&select_rect_placed, &spr.mode);
+                                        render::draw_sprite(ctx, &self.camera, image, rect, &spr.mode);
                                     }
                                 }
                             }
@@ -573,19 +603,16 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                 }
 
                 if ui.menu_item(im_str!("Ajouter une ressources ..")).build() {
+                    use nfd::Response;
+
                     let result = nfd::open_file_dialog(Some("jpg"), None).unwrap();
                     match result {
                         Response::Okay(file) => {
                             println!("{:?}", file);
-                        },
-                        Response::OkayMultiple(_) => {
-
-                        },
-                        Response::Cancel => {
-
-                        },
+                        }
+                        Response::OkayMultiple(_) => {}
+                        Response::Cancel => {}
                     }
-
                 }
             });
 
@@ -603,8 +630,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
             });
 
             if ui.button(im_str!("Tester"), (100., -1.)) {
-                let try = EditorTryLevelScene::new(window_size.clone(), self.input_manager.clone(), &self.level);
-                next_state = NextState::Replace(Box::new(try));
+                next_state = NextState::Push(Box::new(EditorTryLevelScene::new(window_size, self.input_manager.clone(), &self.level)));
             }
 
             ui.text(&format!("{:?}", self.mode));
@@ -674,6 +700,6 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
     fn background_color(&self) -> Color { *self.level.background_color() }
 
     fn resize_event(&mut self, _ctx: &mut Context, screen_size: Vector2<u32>) {
-        self.camera.update_screen_size(&screen_size);
+        self.camera.update_screen_size(screen_size);
     }
 }

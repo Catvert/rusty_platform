@@ -1,29 +1,28 @@
-use ggez::Context;
-use ggez::graphics::Color;
-
-use na::Vector2;
-
-use scenes::{Scene, SceneState, NextState};
-
-use ecs::level::Level;
-use ecs::inputs::InputSystem;
-use ecs::actions::ActionSystem;
-
-use utils::camera::Camera;
-use utils::input_manager::RefInputManager;
-use utils::resources_manager::RefRM;
-use ecs::physics::PhysicsSystem;
-use wrapper::imgui_wrapper::CenteredWindow;
-
+use crate::{
+    ecs::{
+        actions::ActionSystem,
+        inputs::InputSystem,
+        level::Level,
+        physics::PhysicsSystem,
+    },
+    scenes::{
+        NextState,
+        Scene,
+        SceneState,
+    },
+    utils::{
+        camera::Camera,
+        constants,
+        input_manager::RefInputManager,
+    },
+};
+use ggez::{
+    Context,
+    event::Keycode,
+    graphics::Color,
+};
 use imgui::Ui;
-use ggez::event::Keycode;
-use imgui::ImGuiCond;
-use std::path::PathBuf;
-use ecs::level::LevelConfig;
-use scenes::main_scene::MainScene;
-
-use utils::constants;
-use specs::World;
+use nalgebra::Vector2;
 
 pub struct EditorTryLevelScene<'a, 'b> {
     level: Level<'a, 'b>,
@@ -33,15 +32,17 @@ pub struct EditorTryLevelScene<'a, 'b> {
 
 impl<'a, 'b> EditorTryLevelScene<'a, 'b> {
     pub fn new(screen_size: Vector2<u32>, input_manager: RefInputManager, editor_level: &Level) -> Self {
-        let level = editor_level.clone(|builder| {
+        let level = crate::ecs::level::clone(editor_level, |builder| {
             builder.with(InputSystem { input_manager: input_manager.clone() }, "input_manager", &[])
                 .with(ActionSystem, "action_system", &["input_manager"])
                 .with(PhysicsSystem { gravity: Vector2::new(0., 9.81) }, "phys_sys", &["action_system"])
         });
 
-        let camera = Camera::new(screen_size, Vector2::new(constants::CAMERA_VIEW_SIZE.0, constants::CAMERA_VIEW_SIZE.1), 1.);
-
-        EditorTryLevelScene { level, input_manager, camera }
+        EditorTryLevelScene {
+            level,
+            input_manager,
+            camera: Camera::new(screen_size, Vector2::new(constants::CAMERA_VIEW_SIZE.0, constants::CAMERA_VIEW_SIZE.1), 1.),
+        }
     }
 }
 
@@ -59,7 +60,7 @@ impl<'a, 'b> Scene for EditorTryLevelScene<'a, 'b> {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> SceneState {
-        self.level.draw( ctx, &self.camera);
+        self.level.draw(ctx, &self.camera);
         Ok(NextState::Continue)
     }
 
@@ -72,6 +73,6 @@ impl<'a, 'b> Scene for EditorTryLevelScene<'a, 'b> {
     fn background_color(&self) -> Color { *self.level.background_color() }
 
     fn resize_event(&mut self, _ctx: &mut Context, screen_size: Vector2<u32>) {
-        self.camera.update_screen_size(&screen_size);
+        self.camera.update_screen_size(screen_size);
     }
 }
