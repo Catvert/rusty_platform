@@ -22,9 +22,7 @@ impl Camera {
         }
     }
 
-    pub fn position(&self) -> Point2<f64> {
-        self.position
-    }
+    pub fn position(&self) -> Point2<f64> { self.position }
 
     pub fn world_view(&self) -> Rect {
         let (scale_x, scale_y) = self.get_scale();
@@ -51,9 +49,9 @@ impl Camera {
 
     pub fn move_to(&mut self, to: Point2<f64>, bounds: Option<Rect>) {
         self.position = if let Some(rect) = bounds {
-            Point2::new(clamp(to.x, rect.left(), rect.right()), clamp(to.y, rect.top(), rect.bottom()))
+            Point2::new(clamp(to.x + self.position.x, rect.left(), rect.right()), clamp(to.y + self.position.y, rect.top(), rect.bottom()))
         } else {
-            to
+            Point2::new(to.x + self.position.x, to.y + self.position.y)
         };
     }
 

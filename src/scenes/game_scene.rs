@@ -30,6 +30,7 @@ use imgui::{
     Ui,
 };
 use nalgebra::Vector2;
+use crate::utils::ggez::CtxExtension;
 
 pub struct GameScene<'a, 'b> {
     level: Level<'a, 'b>,
@@ -39,14 +40,14 @@ pub struct GameScene<'a, 'b> {
 }
 
 impl<'a, 'b> GameScene<'a, 'b> {
-    pub fn new(ctx: &mut Context, screen_size: Vector2<u32>, input_manager: RefInputManager, level_config: LevelConfig) -> Self {
+    pub fn new(ctx: &mut Context, input_manager: RefInputManager, level_config: LevelConfig) -> Self {
         let level = Level::load(ctx, level_config, None, |builder| {
             builder.with(InputSystem { input_manager: input_manager.clone() }, "input_manager", &[])
                 .with(ActionSystem, "action_system", &["input_manager"])
                 .with(PhysicsSystem { gravity: Vector2::new(0., 9.81) }, "phys_sys", &["action_system"])
         });
 
-        let camera = Camera::new(screen_size, Vector2::new(constants::CAMERA_VIEW_SIZE.0, constants::CAMERA_VIEW_SIZE.1), 1.);
+        let camera = Camera::new(ctx.screen_size(),  Vector2::new(constants::CAMERA_VIEW_SIZE.0, constants::CAMERA_VIEW_SIZE.1), 1.);
 
         GameScene { level, input_manager, camera, show_exit_menu: false }
     }
@@ -55,8 +56,9 @@ impl<'a, 'b> GameScene<'a, 'b> {
 impl<'a, 'b> Scene for GameScene<'a, 'b> {
     fn update(&mut self, ctx: &mut Context, dt: f32) -> SceneState {
         self.level.update(ctx, &self.camera, dt);
+        self.level.update_follow_camera(&mut self.camera);
 
-        if let Some(true) = self.input_manager.lock().unwrap().is_key_pressed(&Keycode::Escape) {
+        if let Some(true) = self.input_manager.lock().unwrap().is_key_pressed(Keycode::Escape) {
             self.show_exit_menu = true;
         }
 
@@ -68,7 +70,7 @@ impl<'a, 'b> Scene for GameScene<'a, 'b> {
         Ok(NextState::Continue)
     }
 
-    fn draw_ui(&mut self, ctx: &mut Context, _window_size: Vector2<u32>, ui: &Ui) -> SceneState {
+    fn draw_ui(&mut self, ctx: &mut Context, ui: &Ui) -> SceneState {
         let mut next_state = NextState::Continue;
 
         if self.show_exit_menu {

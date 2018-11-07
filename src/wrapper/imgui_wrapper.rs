@@ -44,6 +44,7 @@ use std::{
     io::Read,
     time::Instant,
 };
+use crate::utils::ggez::CtxExtension;
 
 const IMGUI_TAB: u8 = 0;
 const IMGUI_LEFT_ARROW: u8 = 1;
@@ -281,10 +282,10 @@ impl ImGuiWrapper {
     pub fn render_scene_ui(&mut self, ctx: &mut Context, scene: &mut Box<dyn Scene>) -> SceneState {
         self.update_mouse();
 
-        let logical_size = ctx.gfx_context.window.drawable_size();
+        let screen_size = ctx.screen_size();
 
         let frame_size = FrameSize {
-            logical_size: (logical_size.0 as f64, logical_size.1 as f64),
+            logical_size: (screen_size.x as f64, screen_size.y as f64),
             hidpi_factor: 1.0,
         };
 
@@ -295,7 +296,7 @@ impl ImGuiWrapper {
 
         let ui = self.imgui.frame(frame_size, delta_s);
 
-        let next_scene_state = scene.draw_ui(ctx, Vector2::new(logical_size.0, logical_size.1), &ui);
+        let next_scene_state = scene.draw_ui(ctx, &ui);
 
         let factory = &mut *ctx.gfx_context.factory;
         let encoder = &mut ctx.gfx_context.encoder;

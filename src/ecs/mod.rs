@@ -23,6 +23,7 @@ use specs::{
     System,
     World,
 };
+use crate::ecs::level::FollowEntity;
 
 pub mod level;
 pub mod actions;
@@ -49,6 +50,7 @@ pub fn create_default_world() -> (World, ChunkSystem) {
 
     world.add_resource(U64MarkerAllocator::new());
     world.add_resource(ActiveChunksRect::new(Rect::new(0., 0., 1000, 1000), 1.5));
+    world.add_resource(FollowEntity::default());
 
     let mut chunk_sys = ChunkSystem::new((20, 5), Rect::new(0., 0., 1280, 720));
     chunk_sys.setup(&mut world.res);
@@ -59,8 +61,6 @@ pub fn copy_world(copy_world: &World) -> (World, ChunkSystem) {
     let copy_entities = copy_world.entities();
 
     let (mut world, chunk_sys) = create_default_world();
-
-    let copy_world_u64_marker = copy_world.read_storage::<U64Marker>();
 
     for ent in copy_entities.join() {
         let new_ent = {
@@ -84,12 +84,10 @@ pub fn copy_world(copy_world: &World) -> (World, ChunkSystem) {
 
             new_ent.build()
         };
-
-        // TODO pas top
-        let mut u64_marker_allocator = world.write_resource::<U64MarkerAllocator>();
-
-        u64_marker_allocator.allocate(new_ent, Some(copy_world_u64_marker.get(ent).unwrap().id()));
     }
+
+    *world.write_resource::<U64MarkerAllocator>() = copy_world.read_resource::<U64MarkerAllocator>().clone();
+    world.write_resource::<FollowEntity>().0 =  copy_world.read_resource::<FollowEntity>().0;
 
     (world, chunk_sys)
 }

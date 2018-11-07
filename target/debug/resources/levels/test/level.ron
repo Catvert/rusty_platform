@@ -8,4 +8,5 @@
         a: 1,
     )),
     dir: "resources/levels/test",
+    initial_follow_entity: (Some((0))),
 )

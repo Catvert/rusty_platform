@@ -16,9 +16,9 @@ use specs::{
     prelude::*,
 };
 use specs_derive::*;
+use crate::ecs::level::FollowEntity;
 
 // Storage attribute ?
-
 pub struct ActiveChunksRect {
     rect: Rect,
     scale: f32,
@@ -207,7 +207,7 @@ impl<'a> System<'a> for ChunkSystem {
         ReadStorage<'a, RectComponent>,
         WriteStorage<'a, ChunkComponent>,
         WriteStorage<'a, ActiveChunkMarker>,
-        WriteExpect<'a, ActiveChunksRect>
+        WriteExpect<'a, ActiveChunksRect>,
     );
 
     fn run(&mut self, (entities, rect, mut chunk, mut active_chunk, mut active_rect): Self::SystemData) {

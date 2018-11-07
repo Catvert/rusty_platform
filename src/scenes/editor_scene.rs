@@ -45,6 +45,8 @@ use crate::{
         resources_manager::ResourcesManager,
     },
 };
+use crate::ecs::level::FollowEntity;
+use crate::utils::ggez::CtxExtension;
 use ggez::{
     Context,
     event::{
@@ -81,6 +83,10 @@ use std::{
     collections::HashMap,
     path::Path,
 };
+use std::fmt::Debug;
+use std::fmt::Error;
+use std::fmt::Formatter;
+use std::rc::Rc;
 
 lazy_static! {
     static ref COMPONENTS_WRAPPERS: HashMap<ComponentsWrapper, &'static ImStr> = {
@@ -164,37 +170,52 @@ impl ImGuiMemoryHelper {
     }
 }
 
+struct EntityCallback<'a, 'b>(pub fn(&EditorScene<'a, 'b>, Option<Entity>));
+
+impl<'a, 'b> Debug for EntityCallback<'a, 'b> {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        Ok(())
+    }
+}
+
+impl<'a, 'b> Clone for EntityCallback<'a, 'b> {
+    fn clone(&self) -> Self {
+        EntityCallback(self.0)
+    }
+}
+
 #[derive(Debug, Clone)]
-enum EditorMode {
+enum EditorMode<'a, 'b> {
     Default,
     SelectionRectangle(Point2<f64>, Point2<f64>),
     Select(Entity, Option<Vec<Entity>>),
     Copy(Entity, Option<Vec<Entity>>),
+    SelectEntityCallback(EntityCallback<'a, 'b>),
 }
 
 pub struct EditorScene<'a, 'b> {
     level: Level<'a, 'b>,
     input_manager: RefInputManager,
     camera: Camera,
-    mode: EditorMode,
+    mode: EditorMode<'a, 'b>,
     imgui_helper: ImGuiMemoryHelper,
     is_ui_hover: bool,
 }
 
 impl<'a, 'b> EditorScene<'a, 'b> {
-    pub fn load_level(ctx: &mut Context, screen_size: Vector2<u32>, resources_manager: Option<ResourcesManager>, input_manager: RefInputManager, config: LevelConfig) -> Self {
+    pub fn load_level(ctx: &mut Context, resources_manager: Option<ResourcesManager>, input_manager: RefInputManager, config: LevelConfig) -> Self {
         let level = Level::load(ctx, config, resources_manager, |builder| {
             builder
                 .with(InputSystem { input_manager: input_manager.clone() }, "input_manager", &[])
                 .with(ActionSystem, "action_system", &["input_manager"])
         });
 
-        let camera = Camera::new(screen_size, Vector2::new(constants::CAMERA_VIEW_SIZE.0, constants::CAMERA_VIEW_SIZE.1), 1.);
+        let camera = Camera::new(ctx.screen_size(),Vector2::new(constants::CAMERA_VIEW_SIZE.0, constants::CAMERA_VIEW_SIZE.1), 1.);
 
         EditorScene { level, input_manager, camera, mode: EditorMode::Default, imgui_helper: ImGuiMemoryHelper::new(), is_ui_hover: false }
     }
 
-    pub fn new_level(ctx: &mut Context, screen_size: Vector2<u32>, input_manager: RefInputManager, name: String) -> Self {
+    pub fn new_level(ctx: &mut Context, input_manager: RefInputManager, name: String) -> Self {
         let level = Level::new(ctx, String::from("finch"), name, |builder| {
             builder
                 .with(InputSystem { input_manager: input_manager.clone() }, "input_manager", &[])
@@ -209,7 +230,7 @@ impl<'a, 'b> EditorScene<'a, 'b> {
             //Self::create_entity(world, Point2::new(0., 200.), Vector2::new(100, 100), SpriteMode::Stretch, true);
         });
 
-        let camera = Camera::new(screen_size, Vector2::new(constants::CAMERA_VIEW_SIZE.0, constants::CAMERA_VIEW_SIZE.1), 1.);
+        let camera = Camera::new(ctx.screen_size(), Vector2::new(constants::CAMERA_VIEW_SIZE.0, constants::CAMERA_VIEW_SIZE.1), 1.);
 
         EditorScene { level, input_manager, camera, mode: EditorMode::Default, imgui_helper: ImGuiMemoryHelper::new(), is_ui_hover: false }
     }
@@ -276,43 +297,57 @@ impl<'a, 'b> EditorScene<'a, 'b> {
         overlaps_entities
     }
 
-    fn update_camera(&mut self, dt: f32) {
+    fn update_camera(&mut self, dt: f32) -> Vector2<f64> {
         let dt = dt as f64;
+
+        let mut initial_pos = self.camera.position();
 
         if !self.is_ui_hover {
             let input_manager = self.input_manager.lock().unwrap();
 
             let chunks_bounds = Some(self.level.get_chunk_sys().get_bounds_chunks());
 
-            if let Some(_jp) = input_manager.is_key_pressed(&Keycode::Left) {
-                self.camera.move_by(Vector2::new(-constants::EDITOR_CAMERA_MOVE_SPEED * dt, 0.), chunks_bounds);
+            let mut mv = Vector2::new(0., 0.);
+
+            if let Some(_jp) = input_manager.is_key_pressed(Keycode::Left) {
+                mv.x -= constants::EDITOR_CAMERA_MOVE_SPEED * dt;
             }
 
-            if let Some(_jp) = input_manager.is_key_pressed(&Keycode::Right) {
-                self.camera.move_by(Vector2::new(constants::EDITOR_CAMERA_MOVE_SPEED * dt, 0.), chunks_bounds);
+            if let Some(_jp) = input_manager.is_key_pressed(Keycode::Right) {
+                mv.x += constants::EDITOR_CAMERA_MOVE_SPEED * dt;
             }
 
-            if let Some(_jp) = input_manager.is_key_pressed(&Keycode::Up) {
-                self.camera.move_by(Vector2::new(0., -constants::EDITOR_CAMERA_MOVE_SPEED * dt), chunks_bounds);
+            if let Some(_jp) = input_manager.is_key_pressed(Keycode::Up) {
+                mv.y -= constants::EDITOR_CAMERA_MOVE_SPEED * dt;
             }
 
-            if let Some(_jp) = input_manager.is_key_pressed(&Keycode::Down) {
-                self.camera.move_by(Vector2::new(0., constants::EDITOR_CAMERA_MOVE_SPEED * dt), chunks_bounds);
+            if let Some(_jp) = input_manager.is_key_pressed(Keycode::Down) {
+                mv.y += constants::EDITOR_CAMERA_MOVE_SPEED * dt;
             }
 
-            if let Some(_jp) = input_manager.is_key_pressed(&Keycode::P) {
+            if let Some(_jp) = input_manager.is_key_pressed(Keycode::P) {
                 self.camera.zoom_by(0.01, chunks_bounds);
             }
 
-            if let Some(_jp) = input_manager.is_key_pressed(&Keycode::M) {
+            if let Some(_jp) = input_manager.is_key_pressed(Keycode::M) {
                 self.camera.zoom_by(-0.01, chunks_bounds);
             }
+
+            self.camera.move_by(mv, chunks_bounds);
         }
+
+        let end_pos = self.camera.position();
+
+        Vector2::new(end_pos.x - initial_pos.x, end_pos.y - initial_pos.y)
     }
 }
 
 impl<'a, 'b> Scene for EditorScene<'a, 'b> {
     fn update(&mut self, ctx: &mut Context, dt: f32) -> SceneState {
+        let mut next_state = NextState::Continue;
+
+        let camera_move = self.update_camera(dt);
+        let camera_move_in_world = self.camera.screen_size_to_world(camera_move);
         {
             let input_manager = self.input_manager.lock().unwrap();
 
@@ -321,11 +356,11 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
             let delta_mouse = input_manager.get_delta_mouse();
             let delta_mouse_in_world = self.camera.screen_size_to_world(Vector2::new(delta_mouse.x as f64, delta_mouse.y as f64));
 
-            if let Some(jp) = input_manager.is_mouse_pressed(&MouseButton::Left) {
+            if let Some(jp) = input_manager.is_mouse_pressed(MouseButton::Left) {
                 let next_mode = match self.mode.clone() {
                     EditorMode::Default => {
                         if !self.is_ui_hover {
-                            if *jp {
+                            if jp {
                                 if let Some(ent) = self.get_entity_under_mouse(&input_manager) {
                                     Some(EditorMode::Select(ent, None))
                                 } else {
@@ -346,14 +381,14 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                         let mut next_mode = None;
 
                         if !self.is_ui_hover {
-                            if !*jp {
+                            if !jp {
                                 let mut rect_storage = self.level.get_world().write_storage::<RectComponent>();
 
                                 macro_rules! move_ent {
                                     ($ent:expr) => {
                                       if let Some(rect) = rect_storage.get_mut($ent) {
-                                        let mut move_x = delta_mouse_in_world.x;
-                                        let mut move_y = delta_mouse_in_world.y;
+                                        let mut move_x = delta_mouse_in_world.x + camera_move_in_world.x;
+                                        let mut move_y = delta_mouse_in_world.y + camera_move_in_world.y;
 
                                         let bounds = self.level.get_chunk_sys().get_bounds_chunks();
 
@@ -404,7 +439,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                         next_mode
                     }
                     EditorMode::Copy(entity, other_entities) => {
-                        if *jp {
+                        if jp {
                             let (select_rect, other_ent_pos) = {
                                 let rect_storage = self.level.get_world().read_storage::<RectComponent>();
                                 let select_rect = rect_storage.get(entity).map_or(Rect::new(0., 0., 0, 0), |rect| rect.get_rect().clone());
@@ -432,6 +467,12 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
 
                         None
                     }
+                    EditorMode::SelectEntityCallback(cb) => {
+                        let entity = self.get_entity_under_mouse(&input_manager);
+                        cb.0(self, entity);
+
+                        Some(EditorMode::Default)
+                    }
                 };
 
                 if let Some(mode) = next_mode {
@@ -456,7 +497,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                 }
             }
 
-            if let Some(true) = input_manager.is_mouse_pressed(&MouseButton::Right) {
+            if let Some(true) = input_manager.is_mouse_pressed(MouseButton::Right) {
                 match self.mode {
                     EditorMode::Default => {}
                     EditorMode::Select(select_ent, _) => {
@@ -470,11 +511,12 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                         self.mode = EditorMode::Default;
                     }
                     EditorMode::SelectionRectangle(_, _) => {}
+                    EditorMode::SelectEntityCallback(_) => {}
                 }
             }
 
             if !self.is_ui_hover {
-                if let Some(true) = input_manager.is_key_pressed(&Keycode::Backspace) {
+                if let Some(true) = input_manager.is_key_pressed(Keycode::Backspace) {
                     if let EditorMode::Select(entity, other_entities) = self.mode.clone() {
                         macro_rules! delete_ent {
                             ($ent:expr) => {
@@ -494,7 +536,7 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                     self.mode = EditorMode::Default;
                 }
 
-                if let Some(true) = input_manager.is_key_pressed(&Keycode::C) {
+                if let Some(true) = input_manager.is_key_pressed(Keycode::C) {
                     if let Some(mode) = if let EditorMode::Select(ref entity, ref other_entities) = self.mode {
                         Some(EditorMode::Copy(entity.clone(), other_entities.clone()))
                     } else { None } {
@@ -502,12 +544,14 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                     }
                 }
             }
+
+            if let Some(true) = input_manager.is_key_pressed(Keycode::F2) {
+                next_state = NextState::Push(Box::new(EditorTryLevelScene::new(ctx.screen_size(), self.input_manager.clone(), &self.level)));
+            }
         }
 
-        self.update_camera(dt);
-
         self.level.update(ctx, &self.camera, dt);
-        Ok(NextState::Continue)
+        Ok(next_state)
     }
 
     fn draw(&mut self, ctx: &mut Context) -> SceneState {
@@ -586,13 +630,14 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
 
                 graphics::set_color(ctx, default_color)?;
             }
+            EditorMode::SelectEntityCallback(cb) => {}
         }
 
 
         Ok(NextState::Continue)
     }
 
-    fn draw_ui(&mut self, ctx: &mut Context, window_size: Vector2<u32>, ui: &Ui) -> SceneState {
+    fn draw_ui(&mut self, ctx: &mut Context, ui: &Ui) -> SceneState {
         let mut next_state = NextState::Continue;
 
         ui.main_menu_bar(|| {
@@ -617,6 +662,11 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
             });
 
             ui.menu(im_str!("Niveau")).build(|| {
+                if ui.button(im_str!("Sélectionner l'entité suivi"), (0., 0.)) {
+                    self.mode = EditorMode::SelectEntityCallback(EntityCallback(|editor, ent| {
+                        editor.level.set_follow_camera(ent);
+                    }));
+                }
                 if ui.collapsing_header(im_str!("Arrière plan")).build() {
                     let color = self.level.background_color_mut();
 
@@ -629,10 +679,6 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
                 }
             });
 
-            if ui.button(im_str!("Tester"), (100., -1.)) {
-                next_state = NextState::Push(Box::new(EditorTryLevelScene::new(window_size, self.input_manager.clone(), &self.level)));
-            }
-
             ui.text(&format!("{:?}", self.mode));
         });
 
@@ -640,24 +686,22 @@ impl<'a, 'b> Scene for EditorScene<'a, 'b> {
             if let EditorMode::Select(entity, _) = self.mode.clone() {
                 let mut opened = self.imgui_helper.select_entity_view_show_window;
                 ui.window(im_str!("Entité {}", entity.id())).opened(&mut opened).always_auto_resize(true).build(|| {
-                    {
-                        let av_comps: Vec<(ComponentsWrapper, &'static ImStr)> = COMPONENTS_WRAPPERS.iter().filter(|c| c.0.has_comp(entity, self.level.get_world())).map(|c| (c.0.clone(), *c.1)).collect();
+                    let av_comps: Vec<(ComponentsWrapper, &'static ImStr)> = COMPONENTS_WRAPPERS.iter().filter(|c| c.0.has_comp(entity, self.level.get_world())).map(|c| (c.0.clone(), *c.1)).collect();
 
-                        let mut pos = av_comps.iter().position(|c| c.0 == self.imgui_helper.select_entity_view_component_selected).map_or(-1, |pos| pos as i32);
+                    let mut pos = av_comps.iter().position(|c| c.0 == self.imgui_helper.select_entity_view_component_selected).map_or(-1, |pos| pos as i32);
 
-                        let names: Vec<&ImStr> = av_comps.iter().map(|c| c.1).collect();
+                    let names: Vec<&ImStr> = av_comps.iter().map(|c| c.1).collect();
 
-                        if ui.combo(im_str!("component"), &mut pos, &names[..], 10) {
-                            let comp = av_comps.iter().nth(pos as usize).unwrap().0.clone();
-                            self.imgui_helper.select_entity_view_component_selected = comp;
-                        }
+                    if ui.combo(im_str!("component"), &mut pos, &names[..], 10) {
+                        let comp = av_comps.iter().nth(pos as usize).unwrap().0.clone();
+                        self.imgui_helper.select_entity_view_component_selected = comp;
+                    }
 
-                        ui.same_line(0.);
+                    ui.same_line(0.);
 
-                        if ui.button(im_str!("Supprimer"), (100., 0.)) {
-                            if let Some(comp) = av_comps.iter().nth(pos as usize) {
-                                comp.0.delete(entity, self.level.get_world());
-                            }
+                    if ui.button(im_str!("Supprimer"), (100., 0.)) {
+                        if let Some(comp) = av_comps.iter().nth(pos as usize) {
+                            comp.0.delete(entity, self.level.get_world());
                         }
                     }
 

@@ -50,12 +50,12 @@ impl InputManager {
         return Point2::new(self.mouse_pos.x - self.last_mouse_pos.x, self.mouse_pos.y - self.last_mouse_pos.y);
     }
 
-    pub fn is_key_pressed(&self, key: &Keycode) -> Option<&JustPressed> {
-        self.pressed_keys.get(key)
+    pub fn is_key_pressed(&self, key: Keycode) -> Option<JustPressed> {
+        self.pressed_keys.get(&key).cloned()
     }
 
-    pub fn is_mouse_pressed(&self, button: &MouseButton) -> Option<&JustPressed> {
-        self.pressed_mouse.get(button)
+    pub fn is_mouse_pressed(&self, button: MouseButton) -> Option<JustPressed> {
+        self.pressed_mouse.get(&button).cloned()
     }
 
     pub fn update(&mut self) {

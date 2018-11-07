@@ -6,7 +6,10 @@ use crate::{
             ChunkSystem,
         },
         loading::LoadingResourcesSystem,
-        render::RenderSystem,
+        render::{
+            RenderSystem,
+            SpriteImage
+        },
         serialization::{
             DeserializeSystem,
             SerializeSystem,
@@ -49,10 +52,17 @@ use std::{
         PathBuf,
     },
 };
+use specs::Entity;
+use specs::saveload::U64Marker;
+use specs::saveload::U64MarkerAllocator;
+use specs::saveload::MarkerAllocator;
+use specs::saveload::Marker;
+use crate::ecs::rect::RectComponent;
+use nalgebra::Point2;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum Background {
-    Texture(String, #[serde(with = "ColorDef")] Color),
+    Texture(SpriteImage, #[serde(with = "ColorDef")] Color),
     Color(#[serde(with = "ColorDef")] Color),
 }
 
@@ -62,12 +72,22 @@ impl Default for Background {
     }
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct FollowEntity(pub Option<U64Marker>);
+
+impl Default for FollowEntity {
+    fn default() -> Self {
+        FollowEntity(None)
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LevelConfig {
     pub author: String,
     pub name: String,
     pub background: Background,
     pub dir: PathBuf,
+    pub initial_follow_entity: FollowEntity
 }
 
 impl LevelConfig {
@@ -119,7 +139,9 @@ pub fn clone<'l, 'l2, F: FnMut(DispatcherBuilder<'l, 'l2>) -> DispatcherBuilder<
 
 impl<'a, 'b> Level<'a, 'b> {
     pub fn load<F: FnMut(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>>(ctx: &mut Context, config: LevelConfig, resources_manager: Option<ResourcesManager>, build_dispatcher: F) -> Self {
-        let (world, dispatcher, chunk_sys) = Self::build_default_world(build_dispatcher);
+        let (mut world, dispatcher, chunk_sys) = Self::build_default_world(build_dispatcher);
+
+        world.write_resource::<FollowEntity>().0 = config.initial_follow_entity.0.clone();
 
         let mut resources_manager = resources_manager.unwrap_or_default();
 
@@ -146,6 +168,7 @@ impl<'a, 'b> Level<'a, 'b> {
             name,
             background: Background::default(),
             dir,
+            initial_follow_entity: FollowEntity::default()
         };
 
         Level { config, world, dispatcher, chunk_sys, resources_manager, blend_mode: None }
@@ -198,13 +221,32 @@ impl<'a, 'b> Level<'a, 'b> {
         RenderSystem { ctx, camera }.run_now(&self.world.res);
     }
 
-    pub fn save(&self) {
+    pub fn save(&mut self) {
         if !self.config.dir.exists() {
             fs::create_dir(&self.config.dir).unwrap();
         }
 
         SerializeSystem { writer: File::create(&self.config.world_data_path()).unwrap() }.run_now(&self.world.res);
+
+        self.config.initial_follow_entity = self.world.read_resource::<FollowEntity>().clone();
+
         self.config.save();
+    }
+
+    pub fn set_follow_camera(&self, entity: Option<Entity>) {
+        *self.world.write_resource::<FollowEntity>() = FollowEntity(entity.map(|e| (*self.world.read_storage::<U64Marker>().get(e).unwrap())));
+    }
+
+    pub fn update_follow_camera(&self, camera: &mut Camera) {
+        if let Some(entity) = self.world.read_resource::<FollowEntity>().0 {
+            if let Some(entity) = self.world.read_resource::<U64MarkerAllocator>().retrieve_entity_internal(entity.id()) {
+                if let Some(rect) = self.world.read_storage::<RectComponent>().get(entity) {
+                    let pos = camera.world_point_to_screen(rect.pos());
+
+                    camera.move_to(pos, None);
+                }
+            }
+        }
     }
 
     pub fn update(&mut self, _context: &mut Context, camera: &Camera, _dt: f32) {

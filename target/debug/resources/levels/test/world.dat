@@ -4,8 +4,8 @@
         components: (Some(RectComponent(
             rect: Rect(
                 pos: [
-                    874.5,
-                    457.5,
+                    474,
+                    346.5,
                 ],
                 size: [
                     100,
@@ -19,27 +19,26 @@
             mode: Stretch,
         )), Some(InputComponent(
             input_actions: [
+                (122, false, PhysicsMove([
+                    0,
+                    4.575000286102295,
+                ])),
                 (113, false, PhysicsMove([
-                    -3.9220001697540283,
+                    -5.229000091552734,
                     0,
                 ])),
                 (100, false, PhysicsMove([
-                    3.2680001258850098,
+                    5.88200044631958,
                     0,
-                ])),
-                (122, false, PhysicsMove([
-                    0,
-                    -3.2680001258850098,
                 ])),
                 (115, false, PhysicsMove([
                     0,
-                    3.9220001697540283,
+                    5.229000091552734,
                 ])),
-                (32, true, PhysicsJump(258)),
             ],
         )), Some(PhysicsComponent(
             body_type: Dynamic(
-                apply_gravity: true,
+                apply_gravity: false,
             ),
             next_physics_step: [
             ],
@@ -50,8 +49,8 @@
         components: (Some(RectComponent(
             rect: Rect(
                 pos: [
-                    559,
-                    592,
+                    455.5,
+                    574,
                 ],
                 size: [
                     100,
@@ -64,7 +63,35 @@
             )),
             mode: Stretch,
         )), None, Some(PhysicsComponent(
-            body_type: Static,
+            body_type: Dynamic(
+                apply_gravity: false,
+            ),
+            next_physics_step: [
+            ],
+        ))),
+    ),
+    EntityData(
+        marker: U64Marker(2),
+        components: (Some(RectComponent(
+            rect: Rect(
+                pos: [
+                    236.5,
+                    287.5,
+                ],
+                size: [
+                    100,
+                    100,
+                ],
+            ),
+        )), Some(SpriteComponent(
+            image: Some(SpriteImage(
+                path: "/finch_square.jpg",
+            )),
+            mode: Stretch,
+        )), None, Some(PhysicsComponent(
+            body_type: Dynamic(
+                apply_gravity: false,
+            ),
             next_physics_step: [
             ],
         ))),
@@ -74,11 +101,11 @@
         components: (Some(RectComponent(
             rect: Rect(
                 pos: [
-                    706,
-                    710.5,
+                    770.5,
+                    100,
                 ],
                 size: [
-                    396,
+                    100,
                     100,
                 ],
             ),
@@ -88,7 +115,9 @@
             )),
             mode: Stretch,
         )), None, Some(PhysicsComponent(
-            body_type: Static,
+            body_type: Dynamic(
+                apply_gravity: false,
+            ),
             next_physics_step: [
             ],
         ))),

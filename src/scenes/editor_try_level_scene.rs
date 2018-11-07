@@ -22,7 +22,8 @@ use ggez::{
     graphics::Color,
 };
 use imgui::Ui;
-use nalgebra::Vector2;
+use nalgebra::{Vector2, Vector3};
+use crate::utils::ggez::CtxExtension;
 
 pub struct EditorTryLevelScene<'a, 'b> {
     level: Level<'a, 'b>,
@@ -41,7 +42,7 @@ impl<'a, 'b> EditorTryLevelScene<'a, 'b> {
         EditorTryLevelScene {
             level,
             input_manager,
-            camera: Camera::new(screen_size, Vector2::new(constants::CAMERA_VIEW_SIZE.0, constants::CAMERA_VIEW_SIZE.1), 1.),
+            camera: Camera::new(screen_size,Vector2::new(constants::CAMERA_VIEW_SIZE.0, constants::CAMERA_VIEW_SIZE.1), 1.),
         }
     }
 }
@@ -52,7 +53,9 @@ impl<'a, 'b> Scene for EditorTryLevelScene<'a, 'b> {
 
         self.level.update(ctx, &self.camera, dt);
 
-        if let Some(true) = self.input_manager.lock().unwrap().is_key_pressed(&Keycode::Escape) {
+        self.level.update_follow_camera(&mut self.camera);
+
+        if let Some(true) = self.input_manager.lock().unwrap().is_key_pressed(Keycode::Escape) {
             next_state = NextState::Pop;
         }
 
@@ -60,11 +63,21 @@ impl<'a, 'b> Scene for EditorTryLevelScene<'a, 'b> {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> SceneState {
+        let screen_size = ctx.screen_size();
+        let transform = ggez::graphics::get_transform(ctx).append_translation(&Vector3::new(screen_size.x as f32 / 2., screen_size.y as f32 / 2., 0.));
+
+        ggez::graphics::push_transform(ctx, Some(transform));
+        ggez::graphics::apply_transformations(ctx);
+
         self.level.draw(ctx, &self.camera);
+
+        ggez::graphics::pop_transform(ctx);
+        ggez::graphics::apply_transformations(ctx);
+
         Ok(NextState::Continue)
     }
 
-    fn draw_ui(&mut self, ctx: &mut Context, _window_size: Vector2<u32>, ui: &Ui) -> SceneState {
+    fn draw_ui(&mut self, ctx: &mut Context, ui: &Ui) -> SceneState {
         let mut next_state = NextState::Continue;
 
         Ok(next_state)

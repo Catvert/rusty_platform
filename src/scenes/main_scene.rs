@@ -87,7 +87,7 @@ impl Scene for MainScene {
         Ok(NextState::Continue)
     }
 
-    fn draw_ui(&mut self, ctx: &mut Context, window_size: Vector2<u32>, ui: &Ui) -> SceneState {
+    fn draw_ui(&mut self, ctx: &mut Context, ui: &Ui) -> SceneState {
         let mut result = NextState::Continue;
 
         ui.with_color_vars(&[(ImGuiCol::WindowBg, (0., 0., 0., 0.))], || {
@@ -114,18 +114,18 @@ impl Scene for MainScene {
 
                 if ui.button(im_str!("Jouer"), (-1., 0.)) {
                     if let Some(config) = levels.iter().nth(*levels_window_select_level as usize) {
-                        result = NextState::Replace(Box::new(GameScene::new(ctx, window_size.clone(), input_manager.clone(), config.clone())));
+                        result = NextState::Replace(Box::new(GameScene::new(ctx,input_manager.clone(), config.clone())));
                     }
                 }
 
                 if ui.button(im_str!("Éditer"), (-1., 0.)) {
                     if let Some(config) = levels.iter().nth(*levels_window_select_level as usize) {
-                        result = NextState::Replace(Box::new(EditorScene::load_level(ctx, window_size.clone(), None, input_manager.clone(), config.clone())));
+                        result = NextState::Replace(Box::new(EditorScene::load_level(ctx,None, input_manager.clone(), config.clone())));
                     }
                 }
 
                 if ui.button(im_str!("Nouveau"), (-1., 0.)) {
-                    result = NextState::Replace(Box::new(EditorScene::new_level(ctx, window_size.clone(), input_manager.clone(), String::from("test"))))
+                    result = NextState::Replace(Box::new(EditorScene::new_level(ctx, input_manager.clone(), String::from("test"))))
                 }
             });
         }

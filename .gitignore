@@ -14,3 +14,5 @@ target/\.rustc_info\.json
 target/debug/rusty_platform
 
 target/debug/rusty_platform\.d
+
+*.d

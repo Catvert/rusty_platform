@@ -38,8 +38,8 @@ impl<'a> System<'a> for InputSystem {
     fn run(&mut self, (entities, inputs, mut actions): Self::SystemData) {
         for (ent, input) in (&*entities, &inputs).join() {
             for (key, just_pressed, action) in input.input_actions.iter() {
-                if let Some(jp) = self.input_manager.lock().unwrap().is_key_pressed(&Keycode::from_i32(*key).expect(&format!("Touche {} non reconnue !", key))) {
-                    if jp == just_pressed {
+                if let Some(jp) = self.input_manager.lock().unwrap().is_key_pressed(Keycode::from_i32(*key).expect(&format!("Touche {} non reconnue !", key))) {
+                    if jp == *just_pressed {
                         let mut inserted = false;
                         {
                             if let Some(a) = actions.get_mut(ent) {

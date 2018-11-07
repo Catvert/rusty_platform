@@ -5,3 +5,4 @@ pub mod math;
 pub mod imgui;
 pub mod serde;
 pub mod camera;
+pub mod ggez;
